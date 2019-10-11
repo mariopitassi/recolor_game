@@ -3,7 +3,9 @@
 #include "game_io.h"
 #include "game.h"
 
-// Co-auteur : PITASSI Mario
+/* Co-auteurs : PITASSI Mario
+                KASPARIAN Anouche
+*/
 
 void grid_display(game* g);
 void game_start(game g);
