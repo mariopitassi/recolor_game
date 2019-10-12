@@ -6,6 +6,7 @@
 /* Co-auteurs : PITASSI Mario
                 KASPARIAN Anouche
 		ROUSSEAU Mattias
+		AKHOUN Farouk
 */
 
 void grid_display(game* g);
