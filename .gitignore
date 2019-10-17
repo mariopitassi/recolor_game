@@ -1,0 +1,4 @@
+recolor_text
+libgame.a
+recolor_text.o
+test_game_*.o
