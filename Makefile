@@ -12,6 +12,19 @@ recolor_text.o : recolor_text.c game_io.h game.h
 libgame.a: game_io.o game.o
 	ar cr libgame.a game_io.o game.o
 
+#test_mrousseau006 : test_game_mrousseau006.o libgame.a
+#	$(CC) -o $@ $< $(LDFLAGS)
+
+#test_mpitassi : test_game_mpitassi.o libgame.a
+#	$(CC) -o $@ $< $(LDFLAGS)
+
+#test_akasparian : test_game_akasparian.o libgame.a
+#	$(CC) -o $@ $< $(LDFLAGS)
+
+#test_fakhoun : test_game_fakhoun.o libgame.a
+#	$(CC) -o $@ $< $(LDFLAGS)
+
+
 .PHONY: clean
 clean :
 	rm -f recolor_text.o recolor_text libgame.a
