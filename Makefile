@@ -2,6 +2,9 @@ CC = gcc
 CFLAGS = -g -Wall -std=c99
 CPPFLAGS = -I
 LDFLAGS = -L. -lgame
+USERNAMES = mrousseau006 mpitassi akasparian fakhoun
+
+all: recolor_text test_mpitassi
 
 recolor_text : recolor_text.o libgame.a
 	$(CC) -o recolor_text recolor_text.o $(LDFLAGS)
@@ -15,8 +18,11 @@ libgame.a: game_io.o game.o
 #test_mrousseau006 : test_game_mrousseau006.o libgame.a
 #	$(CC) -o $@ $< $(LDFLAGS)
 
-#test_mpitassi : test_game_mpitassi.o libgame.a
-#	$(CC) -o $@ $< $(LDFLAGS)
+test_mpitassi.o: test_mpitassi.c game_io.h game.h
+	$(CC) -c $(CFLAGS) $<
+
+test_mpitassi : test_game_mpitassi.o libgame.a
+	$(CC) -o $@ $< $(LDFLAGS)
 
 #test_akasparian : test_game_akasparian.o libgame.a
 #	$(CC) -o $@ $< $(LDFLAGS)
