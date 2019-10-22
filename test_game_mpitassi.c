@@ -6,6 +6,9 @@
 
 #include "game.h"
 
+// Author: PITASSI Mario
+
+
 /* ****** TEST GAME_NEW ***** */
 
 bool test_game_new(game g, color* tab, uint coups) {
