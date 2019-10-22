@@ -105,9 +105,33 @@ bool test_set_cell_init(uint k) {
             }
         }
     }
+	
+    game g2 = game_new_empty();
 
+    if (g2 == NULL){
+        fprintf(stderr, "Error: invalid game init!\n");
+        return false;
+    }
+
+    for (uint i = 0; i < SIZE; i++) {
+        for (uint j = 0; j < SIZE; j++) {
+            color col = rand()%4;
+            game_set_cell_init(g2, i, j, col);
+            if (game_cell_current_color(g2, i, j) != col) {
+                fprintf(stderr, "Error: invalid cell color!\n");
+                free(g2);
+                g2 = NULL;
+                return false;
+            }
+        }
+    }
+    
     free(g);
     g = NULL;
+
+    free(g2);
+    g2 = NULL;
+
     return true;
 }
 
