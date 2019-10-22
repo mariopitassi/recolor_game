@@ -28,20 +28,48 @@ bool test_game_play_one_move(game g){
 
 
 
-// test game_is_over                -> done thx to mario
+// test game_is_over        
 
 bool test_game_is_over(game g){
     if(g == NULL) {
         fprintf(stderr, "Error: pb memoire\n");
         return false;
     }
-    //jouer jusqu'à la fin w/ if dans boucle jeu? puis 2e if hors boucle
+    bool camarche=false;
+
+    //joue jusqu'à la fin et gagne
     color moves[]={3,1,3,1,0,3,1,0,1,3,2,0};
-    for (int i=0; i<12; i++){
+    for (int i=0; i<11; i++){
         game_play_one_move(g, moves[i]);
+        if (game_is_over(g)){
+            return false;
+        }
+    }
+    game_play_one_move(g, moves[11]);
+    if (game_is_over(g)){
+        camarche=true;
     }
 
-    return game_is_over(g) && true;
+    //relance partie + joue coups aléatoires
+    game_restart(g);
+    color ran_moves[]={2,1,0,3,0,1,2,3,1,0,2,0};
+    for (int n=0; n<12; n++){
+        game_play_one_move(g, ran_moves[n]);
+        if (game_is_over(g)){
+            return false;
+        }
+    }
+
+    //continue de jouer apres coups max
+    color next_moves[]={2,1,0,3,2,0,1};
+    for (int n=0; n<12; n++){
+        game_play_one_move(g, next_moves[n]);
+        if (game_is_over(g)){
+            return false;
+        }
+    }
+    //return game_is_over(g) && true;
+    return camarche;
 }
 
 
@@ -53,6 +81,7 @@ bool test_game_restart(game g, color* tab){
         fprintf(stderr, "Error: pb memoire\n");
         return false;
     }
+    game_restart(g);
 
     for (int i = 0; i <= SIZE - 1; i++) {
         for (int j = 0; j <= SIZE - 1; j++) {
