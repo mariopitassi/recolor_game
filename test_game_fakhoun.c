@@ -54,44 +54,39 @@ bool test_nb_moves_max(int k){
         return false;
     }
 
+    game_set_max_moves(g, 2*k);
 
-
-    free(g);
-    g = NULL;
-    free(g2);
-    g2 = NULL;
-    return true;
-}
-
-/* ********** TEST DE GAME_NB_MOVES_CUR ********** */
-
-bool test_nb_moves_cur(int k){
-    game g = game_new(tab, k);
-
-    if (g == NULL){
-        fprintf(stderr, "Error: invalid game init!\n");
+    if (game_nb_moves_max(g) != 2*k) {
+        fprintf(stderr, "Error: invalid game nb moves max (game_set_max_moves(g))!\n");
+        free(g);
+        g = NULL;
         return false;
     }
 
-    for (int i = 0; i < k; i++) {
-        if (game_nb_moves_cur(g) != i) {
-            fprintf(stderr, "Error: invalid game nb moves cur!\n");
-            free(g);
-            g = NULL;
-            return false;
-        }
-        game_play_one_move(g, 1);
+    game_set_max_moves(g2, k);
+
+    if (game_nb_moves_max(g2) != k) {
+        fprintf(stderr, "Error: invalid game nb moves max (game_set_max_moves(g2))!\n");
+        free(g2);
+        g2 = NULL;
+        return false;
     }
+
+
 
     free(g);
     g = NULL;
+
+    free(g2);
+    g2 = NULL;
+
     return true;
 }
 
 /* ********** TEST DE GAME_SET_CELL_INIT ********** */
 
-bool test_set_cell_init(void) {
-    game g = game_new(tab, 25);
+bool test_set_cell_init(uint k) {
+    game g = game_new(tab, k);
 
     if (g == NULL){
         fprintf(stderr, "Error: invalid game init!\n");
@@ -181,10 +176,8 @@ int main(int argc, char *argv[]) {
     bool ok = false;
     if (strcmp("nb_moves_max", argv[1]) == 0)
         ok = test_nb_moves_max(100);
-    else if (strcmp("nb_moves_cur", argv[1]) == 0)
-        ok = test_nb_moves_cur(100);
     else if (strcmp("set_cell_init", argv[1]) == 0)
-        ok = test_set_cell_init();
+        ok = test_set_cell_init(100);
     else if (strcmp("cell_current_color", argv[1]) == 0)
         ok = test_cell_current_color();
     else {
