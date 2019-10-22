@@ -99,6 +99,12 @@ bool test_game_nb_moves_cur(){
 
     }
 
+    game_restart(g);
+
+    if (game_nb_moves_cur(g) != 0){
+        return false;
+    }
+
     free(g);
 
     g = NULL;
