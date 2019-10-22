@@ -34,7 +34,7 @@ bool test_nb_moves_max(int k){
     }
 
     if (game_nb_moves_max(g) != k) {
-        fprintf(stderr, "Error: invalid game nb moves max!\n");
+        fprintf(stderr, "Error: invalid game nb moves max (game_new)!\n");
         free(g);
         g = NULL;
         return false;
@@ -48,11 +48,13 @@ bool test_nb_moves_max(int k){
     }
 
     if (game_nb_moves_max(g2) != 0) {
-        fprintf(stderr, "Error: invalid game nb moves max!\n");
+        fprintf(stderr, "Error: invalid game nb moves max (game_new_empty)!\n");
         free(g2);
         g2 = NULL;
         return false;
     }
+
+
 
     free(g);
     g = NULL;
@@ -89,7 +91,7 @@ bool test_nb_moves_cur(int k){
 /* ********** TEST DE GAME_SET_CELL_INIT ********** */
 
 bool test_set_cell_init(void) {
-    game g = game_new(tab, 12);
+    game g = game_new(tab, 25);
 
     if (g == NULL){
         fprintf(stderr, "Error: invalid game init!\n");
@@ -116,18 +118,18 @@ bool test_set_cell_init(void) {
 
 /* ********** TEST DE GAME_CELL_CURRENT_COLOR ********** */
 
-bool test_cell_current_color(int k) {
-    game g = game_new(tab, k);
+bool test_cell_current_color() {
+    game g = game_new(tab, 25);
 
     if (g == NULL){
-        fprintf(stderr, "Error: invalid game init!\n");
+        fprintf(stderr, "Error: invalid game init! (game_new) \n");
         return false;
     }
 
     for (uint i = 0; i < SIZE; i++) {
         for (uint j = 0; j < SIZE; j++) {
             if (game_cell_current_color(g, i, j) != tab[12*j+i]) {
-                fprintf(stderr, "Error: invalid cell color!\n");
+                fprintf(stderr, "Error: invalid cell color! (game_new) \n");
                 free(g);
                 g = NULL;
                 return false;
@@ -138,14 +140,14 @@ bool test_cell_current_color(int k) {
     game g2 = game_new_empty();
 
     if (g2 == NULL){
-        fprintf(stderr, "Error: invalid game init!\n");
+        fprintf(stderr, "Error: invalid game init! (game_new_empty)\n");
         return false;
     }
 
     for (uint i = 0; i < SIZE; i++) {
         for (uint j = 0; j < SIZE; j++) {
             if (game_cell_current_color(g2, i, j) != 0) {
-                fprintf(stderr, "Error: invalid cell color!\n");
+                fprintf(stderr, "Error: invalid cell color! (game_new_empty)\n");
                 free(g2);
                 g2 = NULL;
                 return false;
@@ -178,13 +180,13 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "=> Start test fakhoun \"%s\"\n", argv[1]);
     bool ok = false;
     if (strcmp("nb_moves_max", argv[1]) == 0)
-        ok = test_nb_moves_max(12);
+        ok = test_nb_moves_max(100);
     else if (strcmp("nb_moves_cur", argv[1]) == 0)
-        ok = test_nb_moves_cur(12);
+        ok = test_nb_moves_cur(100);
     else if (strcmp("set_cell_init", argv[1]) == 0)
         ok = test_set_cell_init();
     else if (strcmp("cell_current_color", argv[1]) == 0)
-        ok = test_cell_current_color(15);
+        ok = test_cell_current_color();
     else {
         fprintf(stderr, "Error: test \"%s\" not found!\n", argv[1]);
         exit(EXIT_FAILURE);

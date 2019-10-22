@@ -6,6 +6,9 @@
 
 #include "game.h"
 
+// Author: PITASSI Mario
+
+
 /* ****** TEST GAME_NEW ***** */
 
 bool test_game_new(game g, color* tab, uint coups) {
@@ -39,12 +42,14 @@ bool test_game_new(game g, color* tab, uint coups) {
 
 /* ******  TEST SET_MAX_MOVES ****** */
 
-bool test_set_max_moves(game g, uint coups) {
+bool test_set_max_moves(game g) {
     if(g == NULL) {
         fprintf(stderr, "Error : Table de la structure game non initialisé.");
         return false;
     }
 
+    uint coups = 54;
+    
     game_set_max_moves(g, coups);
 
     uint coups_test = game_nb_moves_max(g);
@@ -120,7 +125,7 @@ int main(int argc, char *argv[]) {
     if (strcmp("game_new", argv[1]) == 0)
         ok = test_game_new(jeu, tab, coups_max);
     else if(strcmp("set_max_moves", argv[1]) == 0) {
-        ok = test_set_max_moves(jeu, coups_max);
+        ok = test_set_max_moves(jeu);
     }else if(strcmp("copy", argv[1]) == 0) {
         ok = test_copy(jeu, coups_max);
     }
