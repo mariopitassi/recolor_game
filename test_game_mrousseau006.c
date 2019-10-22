@@ -38,16 +38,17 @@ bool test_game_new_empty (){
 
             if (game_cell_current_color (g, j, i) != 0){
                 fprintf(stderr,"Error:le tableau n'est pas initialisé à RED");
+                game_delete(g);
                 return false;
             }
         }
     }
 
     if(game_nb_moves_max(g) != 0){
+        game_delete(g);
         return false;
     }
-    free(g);
-    g = NULL;
+    game_delete(g);
     return true;
 }
 
@@ -85,6 +86,7 @@ bool test_game_nb_moves_cur(){
     }
 
     if (game_nb_moves_cur(g) != 0){
+        game_delete(g);
         return false;
     }
 
@@ -94,6 +96,7 @@ bool test_game_nb_moves_cur(){
         i++;
 
         if (game_nb_moves_cur(g) != i){
+            game_delete(g);
             return false;
         }
 
@@ -102,12 +105,11 @@ bool test_game_nb_moves_cur(){
     game_restart(g);
 
     if (game_nb_moves_cur(g) != 0){
+        game_delete(g);
         return false;
     }
 
-    free(g);
-
-    g = NULL;
+    game_delete(g);
 
     return true;
 }
