@@ -25,6 +25,7 @@ bool test_game_new(game g, color* tab, uint coup) {
     }
 
     if(game_nb_moves_max(g) != coup) {
+        fprintf(stderr, "Le nombre de coups max est faux");
         game_restart(g);
         return false;
     }
