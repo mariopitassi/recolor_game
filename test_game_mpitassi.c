@@ -8,24 +8,27 @@
 
 /* ****** TEST GAME_NEW ***** */
 
-bool test_game_new(game g, color* tab, uint coup) {
+bool test_game_new(game g, color* tab, uint coups) {
 
     if(g == NULL) {
-        fprintf(stderr, "Table de la structure game non initialisé.");
+        fprintf(stderr, "Error : Table de la structure game non initialisé.");
         return false;
     }
 
     for (int i = 0; i <= SIZE - 1; i++) {
         for (int j = 0; j <= SIZE - 1; j++) {
             if (game_cell_current_color(g, j, i) != tab[12*i+j]) {
-                fprintf(stderr, "Les cellules ne sont pas initialisées avec les bonnes valeurs du tableau.");
+                fprintf(stderr, "Error : Les cellules ne sont pas initialisées avec les bonnes valeurs du tableau.");
                 return false;
             }
         }
     }
 
-    if(game_nb_moves_max(g) != coup) {
-        fprintf(stderr, "Le nombre de coups max est faux");
+    uint coups_test = game_nb_moves_max(g);
+
+    if (coups != coups_test)
+    {
+        fprintf(stderr,"Error : Le nombre de coups max ne coïncide pas : %d != %d", coups, coups_test);
         game_restart(g);
         return false;
     }
@@ -36,45 +39,52 @@ bool test_game_new(game g, color* tab, uint coup) {
 
 /* ******  TEST SET_MAX_MOVES ****** */
 
-bool test_set_max_moves(game g, uint coup) {
+bool test_set_max_moves(game g, uint coups) {
     if(g == NULL) {
-        fprintf(stderr, "Table de la structure game non initialisé.");
+        fprintf(stderr, "Error : Table de la structure game non initialisé.");
         return false;
     }
 
-    return coup == game_nb_moves_max(g);
+    game_set_max_moves(g, coups);
+
+    uint coups_test = game_nb_moves_max(g);
+
+    if (coups != coups_test) {
+        fprintf(stderr,"Error : Le nombre de coups max ne coïncide pas : %d != %d", coups, coups_test);
+        game_restart(g);
+        return false;
+    }
+
+    return true;
 }
 
 /* ****** TEST COPY ***** */
 bool test_copy(game g, uint coup) {
 
     if (g == NULL) {
-        fprintf(stderr, "g1 non initialisé : pas assez de mémoire");
+        fprintf(stderr, "Error : Partie d'origine non initialisée : pas assez de mémoire");
         return false;
     }
 
     game g2 = game_copy(g);
 
     if (g2 == NULL) {
-        fprintf(stderr, "g2 non initialisé : pas assez de mémoire");
+        fprintf(stderr, "Error : Partie copiée non initialisé : pas assez de mémoire");
         return false;
     }
 
     for (int i = 0; i <= SIZE - 1; i++) {
         for (int j = 0; j <= SIZE - 1; j++) {
             if (game_cell_current_color(g, j, i) != game_cell_current_color(g2, j, i)) {
-                fprintf(stderr, "Les cellules ne sont pas initialisées avec les bonnes valeurs du tableau.");
+                fprintf(stderr, "Error : Les cellules copiées ne sont pas initialisées correctement.");
                 return false;
             }
         }
     }
 
     if (game_nb_moves_max(g) != game_nb_moves_max(g2)) {
-        game_restart(g);
-        return false;
-    }
-
-    if (game_nb_moves_max(g) != game_nb_moves_max(g2)) {
+        fprintf(stderr, "Error : Le nombre de coups max est différent");
+        game_delete(g2);
         game_restart(g);
         return false;
     }
@@ -126,7 +136,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Test \"%s\" finished: SUCCESS\n", argv[1]);
         return EXIT_SUCCESS;
     }else {
-        fprintf(stderr, "Test \"%s\" finished: FAILURE\n", argv[1]);
+        fprintf(stderr, "\nTest \"%s\" finished: FAILURE\n\n", argv[1]);
         return EXIT_FAILURE;
     }
 }
