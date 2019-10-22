@@ -153,6 +153,14 @@ bool test_cell_current_color() {
                 g = NULL;
                 return false;
             }
+	    color col = rand()%4;
+	    game_set_cell_init(g, i, j, col);
+	    if (game_cell_current_color(g, i, j) != col) {
+                fprintf(stderr, "Error: invalid cell color! (game_new--set_cell_init)\n");
+                free(g);
+                g = NULL;
+                return false;
+            }
         }
     }
 
@@ -167,6 +175,14 @@ bool test_cell_current_color() {
         for (uint j = 0; j < SIZE; j++) {
             if (game_cell_current_color(g2, i, j) != 0) {
                 fprintf(stderr, "Error: invalid cell color! (game_new_empty)\n");
+                free(g2);
+                g2 = NULL;
+                return false;
+            }
+	    color col = rand()%4;
+	    game_set_cell_init(g2, i, j, col);
+	    if (game_cell_current_color(g2, i, j) != col) {
+                fprintf(stderr, "Error: invalid cell color! (game_new_empty--set_cell_init)\n");
                 free(g2);
                 g2 = NULL;
                 return false;
