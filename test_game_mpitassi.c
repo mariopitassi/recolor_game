@@ -45,21 +45,21 @@ bool test_game_new() {
         }
     }
 
-   for(uint x=0; i<=SIZE;i++) {
-       game g2 = game_new(cell,i);
-      if(g2 == NULL) {
-        fprintf(stderr,"Pointeur NULL");
-        return false;
-      }
+    for(uint i=0; i<=SIZE;i++) {
+        game g2 = game_new(tab,i);
+        if(g2 == NULL) {
+            fprintf(stderr,"Pointeur NULL");
+            return false;
+            }
 
-     if(game_nb_moves_max(g2) != i) {
-       fprintf(stderr, "Error: max moves not initialize");
-       game_delete(g2);
-     }
+        if(game_nb_moves_max(g2) != i) {
+        fprintf(stderr, "Error: max moves not initialize");
+        game_delete(g2);
+        }
 
-     game_delete(g2);
-     return true;
-   }
+        game_delete(g2);
+        return true;
+    }
 
     uint coups_test = game_nb_moves_max(g);
 
