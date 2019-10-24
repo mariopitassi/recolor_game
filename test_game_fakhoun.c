@@ -133,7 +133,7 @@ bool test_set_cell_init(uint k) {
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             color col = tab[12*i+j];
-            game_set_cell_init(g3, i, j, col);
+            game_set_cell_init(g3, j, i, col);
         }
     }
     color ran_moves[]={2,1,0,3,0,1,2,3,1,0,2,0};
@@ -150,8 +150,9 @@ bool test_set_cell_init(uint k) {
             }
         }
     }
-
-
+    game_delete(g);
+    game_delete(g2);
+    game_delete(g3);
     return true;
 }
 
