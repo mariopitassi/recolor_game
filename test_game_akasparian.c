@@ -9,20 +9,21 @@
 
 // test game_play_one_move                pr le moment teste juste la 1ere case (+nb moves curr)
 
-// done & working
-
 bool test_game_play_one_move(game g){      
-    int moves_hyp = game_nb_moves_cur(g)+1;
-    color c = 0; //à randomiser?
+    int moves_hyp = game_nb_moves_cur(g)+1; //prediction du nb de coups post move
+    int c = rand()%4; //random color
     game_play_one_move(g,c);
     if (moves_hyp!=game_nb_moves_cur(g)){
         fprintf(stderr, "Error: invalid number of moves\n");
+        game_delete(g);
         return false;
     }
     if (game_cell_current_color(g,0,0)!=c){
         fprintf(stderr, "Error: invalid cell color\n");
+        game_delete(g);
         return false;
     }
+    game_delete(g);
     return true;
 }
 
@@ -33,15 +34,24 @@ bool test_game_play_one_move(game g){
 bool test_game_is_over(game g){
     if(g == NULL) {
         fprintf(stderr, "Error: pb memoire\n");
+        game_delete(g);
         return false;
     }
+
     bool camarche=false;
 
+    if (game_is_over(g)){
+        fprintf(stderr, "Error: over mais meme pas commence\n");
+        game_delete(g);
+        return false;
+    }
     //joue jusqu'à la fin et gagne
     color moves[]={3,1,3,1,0,3,1,0,1,3,2,0};
     for (int i=0; i<11; i++){
         game_play_one_move(g, moves[i]);
         if (game_is_over(g)){
+            fprintf(stderr, "Error: over mais pas encore fini\n");
+            game_delete(g);
             return false;
         }
     }
@@ -56,6 +66,8 @@ bool test_game_is_over(game g){
     for (int n=0; n<12; n++){
         game_play_one_move(g, ran_moves[n]);
         if (game_is_over(g)){
+            fprintf(stderr, "Error: over mais pas gagne\n");
+            game_delete(g);
             return false;
         }
     }
@@ -65,20 +77,27 @@ bool test_game_is_over(game g){
     for (int n=0; n<12; n++){
         game_play_one_move(g, next_moves[n]);
         if (game_is_over(g)){
+            fprintf(stderr, "Error: over mais coups max depasse\n");
+            game_delete(g);
             return false;
         }
     }
     //return game_is_over(g) && true;
+    if(camarche==false){
+        fprintf(stderr, "Error: devrait etre over\n");
+    }
+    game_delete(g);
     return camarche;
 }
 
 
-// test game_restart          -> done & working
+// test game_restart
 
 bool test_game_restart(game g, color* tab){
     //même chose que mario et game new???????
     if(g == NULL) {
         fprintf(stderr, "Error: pb memoire\n");
+        game_delete(g);
         return false;
     }
     game_restart(g);
@@ -87,6 +106,7 @@ bool test_game_restart(game g, color* tab){
         for (int j = 0; j <= SIZE - 1; j++) {
             if (game_cell_current_color(g, j, i) != tab[12*i+j]) {
                 fprintf(stderr, "Error: pb initialisation cellules\n");
+                game_delete(g);
                 return false;
             }
         }
@@ -94,8 +114,10 @@ bool test_game_restart(game g, color* tab){
 
     if (game_nb_moves_cur(g)!=0||game_nb_moves_max(g)!=12){
         fprintf(stderr, "Error: pb nb moves\n");
+        game_delete(g);
         return false;
     }
+    game_delete(g);
     return true;
 }
 
