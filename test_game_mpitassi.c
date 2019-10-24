@@ -53,6 +53,13 @@ bool test_game_new() {
         return false;
     }
 
+    uint coups_current_test = game_nb_moves_cur(g);
+
+    if(coups_current_test != 0){
+        fprintf(stderr,"Error : Le nombre initial de coups joué ne coïncide pas : %d != %d", coups_current_test, 0);
+        return false;
+    }
+
     game_delete(g);
     return true;
 }
@@ -70,6 +77,12 @@ bool test_set_max_moves() {
     }
 
     uint coups = 54;
+
+    if(game_nb_moves_cur(g) > coups) {
+        fprintf(stderr,"Error : Impossible de définir un coups_max = %d < coups_cur =  %d", coups, game_nb_moves_cur(g));
+        game_delete(g);
+        return false;     
+    }
     
     game_set_max_moves(g, coups);
 
@@ -81,6 +94,20 @@ bool test_set_max_moves() {
         return false;
     }
 
+    game g2 = game_new_empty();
+
+    game_set_max_moves(g2, coups);
+
+    uint coups_test2 = game_nb_moves_max(g2);
+
+    if(coups_test2 != coups) {
+        fprintf(stderr,"Error : Le nombre de coups max ne coïncide pas sur game_new_empty : %d != %d", coups, coups_test2);
+        game_delete(g2);
+        return false;
+    }
+
+    game_delete(g);
+    game_delete(g2);
     return true;
 }
 
