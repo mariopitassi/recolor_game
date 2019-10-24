@@ -53,8 +53,15 @@ bool test_nb_moves_max(int k){
         g2 = NULL;
         return false;
     }
+    uint i = 34;
 
+    game_set_max_moves(g2,i);
 
+    if (game_nb_moves_max(g2) != i){
+        fprintf(stderr,"Error: invalid game nb moves max!\n");
+        game_delete(g2);
+        return false;
+    }
 
     free(g);
     g = NULL;
