@@ -48,16 +48,20 @@ bool test_game_new() {
     for(uint i=0; i<=SIZE;i++) {
         game g2 = game_new(tab,i);
         if(g2 == NULL) {
-            fprintf(stderr,"Pointeur NULL");
+            fprintf(stderr,"Error: Pointeur NULL");
+            game_delete(g);
             return false;
-            }
+        }
 
         if(game_nb_moves_max(g2) != i) {
-        fprintf(stderr, "Error: max moves not initialize");
-        game_delete(g2);
+            fprintf(stderr, "Error: max moves not initialize");
+            game_delete(g2);
+            game_delete(g);
+            return false;
         }
 
         game_delete(g2);
+        game_delete(g);
         return true;
     }
 
@@ -73,6 +77,7 @@ bool test_game_new() {
 
     if(coups_current_test != 0){
         fprintf(stderr,"Error : Le nombre initial de coups joué ne coïncide pas : %d != %d", coups_current_test, 0);
+        game_delete(g);
         return false;
     }
 
@@ -175,7 +180,18 @@ bool test_copy() {
     return true;
 }
 
+/* ********** USAGE ********** */
+
+void usage(int argc, char *argv[]) {
+  fprintf(stderr, "Usage: %s <testname> [<...>]\n", argv[0]);
+  exit(EXIT_FAILURE);
+}
+
+
+/* ********** MAIN ROUTINE ********** */
+
 int main(int argc, char *argv[]) {
+    if (argc == 1) usage(argc, argv);
 
     // Démarrage des tests.
     fprintf(stderr, "=> Start test \"%s\"\n", argv[1]);
