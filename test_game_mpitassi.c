@@ -52,17 +52,15 @@ bool test_game_new() {
             game_delete(g);
             return false;
         }
-
+      
         if(game_nb_moves_max(g2) != i) {
             fprintf(stderr, "Error: max moves not initialize");
             game_delete(g2);
             game_delete(g);
             return false;
         }
-
+          
         game_delete(g2);
-        game_delete(g);
-        return true;
     }
 
     uint coups_test = game_nb_moves_max(g);
