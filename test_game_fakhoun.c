@@ -35,8 +35,7 @@ bool test_nb_moves_max(int k){
 
     if (game_nb_moves_max(g) != k) {
         fprintf(stderr, "Error: invalid game nb moves max (game_new)!\n");
-        free(g);
-        g = NULL;
+        game_delete(g);
         return false;
     }
 
@@ -49,8 +48,8 @@ bool test_nb_moves_max(int k){
 
     if (game_nb_moves_max(g2) != 0) {
         fprintf(stderr, "Error: invalid game nb moves max (game_new_empty)!\n");
-        free(g2);
-        g2 = NULL;
+	game_delete(g);
+        game_delete(g2);
         return false;
     }
     uint i = 34;
@@ -59,8 +58,8 @@ bool test_nb_moves_max(int k){
 
     if (game_nb_moves_max(g) != 2*k) {
         fprintf(stderr, "Error: invalid game nb moves max (game_set_max_moves(g))!\n");
-        free(g);
-        g = NULL;
+        game_delete(g);
+	game_delete(g2);
         return false;
     }
 
@@ -68,18 +67,15 @@ bool test_nb_moves_max(int k){
 
     if (game_nb_moves_max(g2) != k) {
         fprintf(stderr, "Error: invalid game nb moves max (game_set_max_moves(g2))!\n");
-        free(g2);
-        g2 = NULL;
+	game_delete(g);
+        game_delete(g2);
         return false;
     }
 
 
 
-    free(g);
-    g = NULL;
-
-    free(g2);
-    g2 = NULL;
+    game_delete(g);
+    game_delete(g2);
 
     return true;
 }
@@ -100,8 +96,7 @@ bool test_set_cell_init(uint k) {
             game_set_cell_init(g, i, j, col);
             if (game_cell_current_color(g, i, j) != col) {
                 fprintf(stderr, "Error: invalid cell color!\n");
-                free(g);
-                g = NULL;
+                game_delete(g);
                 return false;
             }
         }
@@ -120,8 +115,8 @@ bool test_set_cell_init(uint k) {
             game_set_cell_init(g2, i, j, col);
             if (game_cell_current_color(g2, i, j) != col) {
                 fprintf(stderr, "Error: invalid cell color!\n");
-                free(g2);
-                g2 = NULL;
+		game_delete(g);
+                game_delete(g2);
                 return false;
             }
         }
@@ -133,20 +128,22 @@ bool test_set_cell_init(uint k) {
     game g3 = game_new_empty();
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
-            color col = tab[12*i+j];
-            game_set_cell_init(g3, j, i, col);
+            color col = tab[12*j+i];
+            game_set_cell_init(g3, i, j, col);
         }
     }
     color ran_moves[]={2,1,0,3,0,1,2,3,1,0,2,0};
-    for (int n=0; n<SIZE; n++){
+    for (int n=0; n<12; n++){
         game_play_one_move(g3, ran_moves[n]);
     }
     game_restart(g3);
     for (int i = 0; i <= SIZE - 1; i++) {
         for (int j = 0; j <= SIZE - 1; j++) {
-            if (game_cell_current_color(g3, j, i) != tab[12*i+j]) {
+            if (game_cell_current_color(g3, i, j) != tab[12*j+i]) {
                 fprintf(stderr, "Error: pb apres restart\n");
-                game_delete(g);
+		game_delete(g);	
+		game_delete(g2);
+                game_delete(g3);
                 return false;
             }
         }
@@ -171,16 +168,14 @@ bool test_cell_current_color() {
         for (uint j = 0; j < SIZE; j++) {
             if (game_cell_current_color(g, i, j) != tab[12*j+i]) {
                 fprintf(stderr, "Error: invalid cell color! (game_new) \n");
-                free(g);
-                g = NULL;
+                game_delete(g);
                 return false;
             }
 	    color col = rand()%4;
 	    game_set_cell_init(g, i, j, col);
 	    if (game_cell_current_color(g, i, j) != col) {
                 fprintf(stderr, "Error: invalid cell color! (game_new--set_cell_init)\n");
-                free(g);
-                g = NULL;
+                game_delete(g);
                 return false;
             }
         }
@@ -197,25 +192,23 @@ bool test_cell_current_color() {
         for (uint j = 0; j < SIZE; j++) {
             if (game_cell_current_color(g2, i, j) != 0) {
                 fprintf(stderr, "Error: invalid cell color! (game_new_empty)\n");
-                free(g2);
-                g2 = NULL;
+		game_delete(g);
+                game_delete(g2);
                 return false;
             }
 	    color col = rand()%4;
 	    game_set_cell_init(g2, i, j, col);
 	    if (game_cell_current_color(g2, i, j) != col) {
                 fprintf(stderr, "Error: invalid cell color! (game_new_empty--set_cell_init)\n");
-                free(g2);
-                g2 = NULL;
+		game_delete(g);
+                game_delete(g2);
                 return false;
             }
         }
     }
 
-    free(g);
-    g = NULL;
-    free(g2);
-    g2 = NULL;
+    game_delete(g);
+    game_delete(g2);
     return true;
 }
 
