@@ -52,7 +52,6 @@ bool test_nb_moves_max(int k){
         game_delete(g2);
         return false;
     }
-    uint i = 34;
 
     game_set_max_moves(g, 2*k);
 
