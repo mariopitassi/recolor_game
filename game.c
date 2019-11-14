@@ -11,3 +11,10 @@ typedef struct game_s {
     uint move_max;
     uint move_cur;
 } *game;
+
+
+void error(char[100] err_mess) {
+    fprintf(stderr, "Error: " + err_mess);
+    exit(EXIT_FAILURE);
+}
+
