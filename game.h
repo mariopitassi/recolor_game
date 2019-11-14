@@ -68,13 +68,7 @@ typedef enum color_e {RED, GREEN, BLUE, YELLOW, NB_COLORS} color;
  * just call game_new(),
  * or first create an empty game with game_new_empty(), and then initialize it with game_set_cell_init() and game_set_max_moves().
  **/
-typedef struct game_s {
-    color *tab_init;
-    color *tab_cur;
-    uint size;
-    uint move_max;
-    uint move_cur;
-} *game;
+typedef struct game_s *game;
 
 /**
  * @brief The structure constant pointer that stores the game
