@@ -24,19 +24,22 @@ void game_restart(game g){
     if(g == NULL){
         error("Pointeur est nul");
     }
-
-    for(int i = 0; i < g->size*g->size ; i++){
+    else {
+        for(int i = 0; i < g->size*g->size ; i++){
 
         g->tab_cur[i] = g->tab_init[i];
+        }
+
+        g->move_cur = 0;
     }
 
-    g->move_cur = 0;
 }
 
 uint game_nb_moves_max(game g){
-    if (g == NULL)
+    if (g == NULL){
         error("g is not a valid pointer");
-
+        exit(EXIT_FAILURE);
+    }
     uint nb_moves_max = g->move_max;
 
     return nb_moves_max;
