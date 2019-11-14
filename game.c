@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "game_io.h"
 #include "game.h"
 
@@ -130,16 +131,29 @@ void game_set_max_moves(game g, uint nb_max_moves) {
     g->move_max = nb_max_moves;
 }
 
+// GAME_PLAY_ONE_MOVE
 
-// TODO: finish implementation
-void game_play_one_move(game g, color c) {
-    if(g==NULL) {
-        error("Pointer NULL exception");
-    }
+void static floodFill(game g, uint x, uint y, color oldcolor, color newcolor){
+	if(g->tab_cur[g->size*y+x] == oldcolor){
+		g->tab_cur[g->size*y+x] = newcolor;
+        	if (x < g->size - 1)
+		    floodFill(g, x+1, y, oldcolor, newcolor);
+        	if (y < g->size - 1)
+		    floodFill(g, x, y+1, oldcolor, newcolor);
+		if (x > 0)
+            	    floodFill(g, x-1, y, oldcolor, newcolor);
+		if (y > 0)
+                    floodFill(g, x, y-1, oldcolor, newcolor);
+	}
+}
 
-    if(c < NB_COLORS) {
-        g->move_cur += 1;
+void game_play_one_move(game g, color c){
+    if (g == NULL){
+        fprintf(stderr, "g is not a valid pointer");
+        exit(EXIT_FAILURE);
     }
+    floodFill(g, 0, 0, g->tab_cur[0], c);
+    g->move_cur += 1;
 }
 
 
@@ -149,38 +163,31 @@ void game_restart(game g){
     
     if(g == NULL){
         error("Pointeur est nul");
-    }
-    else {
-        for(int i = 0; i < g->size*g->size ; i++){
+   
+    for(int i = 0; i < g->size*g->size ; i++){
 
         g->tab_cur[i] = g->tab_init[i];
-        }
-
-        g->move_cur = 0;
     }
 
+    g->move_cur = 0;
 }
 
 uint game_nb_moves_max(game g){
-    if (g == NULL){
+    if (g == NULL)
         error("g is not a valid pointer");
-        exit(EXIT_FAILURE);
-    }
-    uint nb_moves_max = g->move_max;
 
+    uint nb_moves_max = g->move_max;
     return nb_moves_max;
 }
 
 void game_delete (game g){
 
-    if(g == NULL){
+    if(g == NULL)
         error("Pointeur est nul");
-    }
 
-    else {
-        free(g->tab_cur);
-        free(g);
-    }
+    free(g->tab_cur);
+    free(g->tab_init);
+    free(g);
 }
 
 /* ************* Author : Farouk *********** */ 
@@ -197,7 +204,14 @@ game game_new(color *cells, uint nb_moves_max){
     game g = malloc(sizeof(game));
     if (g == NULL) 
         error("g allocation went wrong\n");
-    g->tab_init = cells;
+    g->tab_init = malloc(SIZE*SIZE*sizeof(color));
+    if (g->tab_init == NULL){
+        fprintf(stderr,"g->tab_init allocation went wrong\n");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i<SIZE*SIZE; i++){
+        g->tab_init[i] = cells[i];
+    }
     g->tab_cur = malloc(SIZE*SIZE*sizeof(color));
     if (g->tab_cur == NULL)
         error("g->tab_cur allocation went wrong\n");
@@ -245,7 +259,7 @@ game game_new_empty(){
 color game_cell_current_color(cgame g, uint x, uint y){
     if (g == NULL)
         error("g is not a valid pointer");
-    if (x >= SIZE || y >= SIZE)
+    if (x >= g->size || y >= g->size)
         error("x or y is higher than SIZE or equal");
-    return g->tab_cur[SIZE*y+x];
+    return g->tab_cur[g->size*y+x];
 }
