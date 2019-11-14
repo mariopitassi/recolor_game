@@ -1,0 +1,26 @@
+- Implémenter les tests dans CMake
+- Tester fonction error 
+- Faire les tests de chacunes des fonctions game.c
+- Implémenter le clean dans CMake
+- Faire des commentaires
+
+
+Mario
+- set_max_moves
+- set_cell_init
+- game_play_one_move
+
+Mattias
+- restart
+- game_delete
+- game_moves_max
+
+Anouche
+- copy
+- game_is_over
+- nb_moves_max
+
+Farouk
+- game_new
+- game_new_empty
+- cell_current_color
