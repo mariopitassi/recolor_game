@@ -13,6 +13,7 @@ typedef struct game_s {
 } *game;
 
 
+// Function to handle error
 void error(char[100] err_mess) {
     fprintf(stderr, "Error: " + err_mess);
     exit(EXIT_FAILURE);
