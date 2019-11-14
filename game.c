@@ -3,7 +3,6 @@
 #include "game_io.h"
 #include "game.h"
 
-
 typedef struct game_s {
     color *tab_init;
     color *tab_cur;
@@ -13,11 +12,50 @@ typedef struct game_s {
 } *game;
 
 
-// Function to handle error
+/* ************* Error handler *********** */ 
+
+// TODO: test this function
 void error(char[100] err_mess) {
     fprintf(stderr, "Error: " + err_mess);
     exit(EXIT_FAILURE);
 }
+
+/* ************* Author : Mario *********** */ 
+
+void game_set_cell_init(game g, uint x, uint y, color c) {
+
+    if(g==NULL || g->tab_init == NULL || g->tab_cur == NULL) {
+        error("Pointer NULL exception");
+    }
+
+    if(x<SIZE && y<SIZE && c < NB_COLORS) {
+        g->tab_init[12*y+x] = c;
+        g->tab_cur[12*y+x]  = c;
+    }
+}
+
+void game_set_max_moves(game g, uint nb_max_moves) {
+    if(g==NULL) {
+        error("Pointer NULL exception");
+    }
+
+    g->move_max = nb_max_moves;
+}
+
+
+// TODO: finish implementation
+void game_play_one_move(game g, color c) {
+    if(g==NULL) {
+        error("Pointer NULL exception");
+    }
+
+    if(c < NB_COLORS) {
+        g->move_cur += 1;
+    }
+}
+
+
+/* ************* Author : Mattias *********** */ 
 
 void game_restart(game g){
     
@@ -56,6 +94,8 @@ void game_delete (game g){
         free(g);
     }
 }
+
+/* ************* Author : Farouk *********** */ 
 
 /**
  * @brief Creates a new game and initializes it in one call.
