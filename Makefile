@@ -15,6 +15,9 @@ recolor_text.o : recolor_text.c game_io.h game.h
 libgame.a: game_io.o game.o
 	ar cr libgame.a game_io.o game.o
 
+game.o : game.c game.h game_io.h
+	$(CC) -c $(CFLAGS) $<
+
 test_game_mrousseau006 : test_game_mrousseau006.o libgame.a
 	$(CC) -o $@ $< $(LDFLAGS)
 
@@ -65,6 +68,3 @@ test_mrousseau006: test_game_mrousseau006
 	./test_game_mrousseau006 game_new_empty
 	./test_game_mrousseau006 game_nb_moves_cur
 	./test_game_mrousseau006 game_delete
-
-
-

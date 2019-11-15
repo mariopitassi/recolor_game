@@ -134,17 +134,17 @@ void game_set_max_moves(game g, uint nb_max_moves) {
 // GAME_PLAY_ONE_MOVE
 
 void static floodFill(game g, uint x, uint y, color oldcolor, color newcolor){
-	if(g->tab_cur[g->size*y+x] == oldcolor){
-		g->tab_cur[g->size*y+x] = newcolor;
-        	if (x < g->size - 1)
-		    floodFill(g, x+1, y, oldcolor, newcolor);
-        	if (y < g->size - 1)
-		    floodFill(g, x, y+1, oldcolor, newcolor);
-		if (x > 0)
-            	    floodFill(g, x-1, y, oldcolor, newcolor);
-		if (y > 0)
-                    floodFill(g, x, y-1, oldcolor, newcolor);
-	}
+    if(g->tab_cur[g->size*y+x] == oldcolor && newcolor != oldcolor){
+        g->tab_cur[g->size*y+x] = newcolor;
+	if (x < g->size - 1)
+	    floodFill(g, x+1, y, oldcolor, newcolor);
+        if (y < g->size - 1)
+	    floodFill(g, x, y+1, oldcolor, newcolor);
+	if (x > 0)
+            floodFill(g, x-1, y, oldcolor, newcolor);
+	if (y > 0)
+            floodFill(g, x, y-1, oldcolor, newcolor);
+    }
 }
 
 void game_play_one_move(game g, color c){
@@ -152,8 +152,10 @@ void game_play_one_move(game g, color c){
         fprintf(stderr, "g is not a valid pointer");
         exit(EXIT_FAILURE);
     }
-    floodFill(g, 0, 0, g->tab_cur[0], c);
-    g->move_cur += 1;
+    if (c < NB_COLORS){
+        floodFill(g, 0, 0, g->tab_cur[0], c);
+        g->move_cur += 1;
+    }
 }
 
 
@@ -186,7 +188,6 @@ void game_delete (game g){
         error("Pointeur est nul");
 
     free(g->tab_cur);
-    free(g->tab_init);
     free(g);
 }
 
@@ -205,10 +206,8 @@ game game_new(color *cells, uint nb_moves_max){
     if (g == NULL) 
         error("g allocation went wrong\n");
     g->tab_init = malloc(SIZE*SIZE*sizeof(color));
-    if (g->tab_init == NULL){
-        fprintf(stderr,"g->tab_init allocation went wrong\n");
-        exit(EXIT_FAILURE);
-    }
+    if (g->tab_init == NULL)
+        error("g->tab_init allocation went wrong\n");
     for (int i = 0; i<SIZE*SIZE; i++){
         g->tab_init[i] = cells[i];
     }
