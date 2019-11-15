@@ -128,7 +128,7 @@ void game_set_max_moves(game g, uint nb_max_moves) {
         error("Pointer NULL exception");
     }
 
-    g->move_max = nb_max_moves;
+    g->moves_max = nb_max_moves;
 }
 
 // GAME_PLAY_ONE_MOVE
@@ -154,7 +154,7 @@ void game_play_one_move(game g, color c){
     }
     if (c < NB_COLORS){
         floodFill(g, 0, 0, g->tab_cur[0], c);
-        g->move_cur += 1;
+        g->moves_cur += 1;
     }
 }
 
@@ -171,14 +171,14 @@ void game_restart(game g){
         g->tab_cur[i] = g->tab_init[i];
     }
 
-    g->move_cur = 0;
+    g->moves_cur = 0;
 }
 
 uint game_nb_moves_max(game g){
     if (g == NULL)
         error("g is not a valid pointer");
 
-    uint nb_moves_max = g->move_max;
+    uint nb_moves_max = g->moves_max;
     return nb_moves_max;
 }
 
@@ -218,8 +218,8 @@ game game_new(color *cells, uint nb_moves_max){
         g->tab_cur[i] = cells[i];
     }
     g->size = SIZE;
-    g->move_max = nb_moves_max;
-    g->move_cur = 0;
+    g->moves_max = nb_moves_max;
+    g->moves_cur = 0;
     return g;
 }
 
@@ -240,8 +240,8 @@ game game_new_empty(){
     if (g->tab_cur == NULL)
         error("g->tab_cur allocation went wrong\n");
     g->size = SIZE;
-    g->move_max = 0;
-    g->move_cur = 0;
+    g->moves_max = 0;
+    g->moves_cur = 0;
     return g;
 }
 
