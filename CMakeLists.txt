@@ -1,14 +1,30 @@
-#version minimale de cmake nécessaire
 cmake_minimum_required(VERSION 2.6)
 
-#nom du projet
 project (recolor C)
 
-#positionne la variable
 set(CMAKE_C_FLAGS "-std=c99 -g -Wall")
 
-#définit le nom du programme ainsi que ses sources
 add_executable(recolor_text recolor_text.c)
-add_library(game game_io.o game.o)
+add_executable(test_game_fakhoun test_game_fakhoun.c)
+add_executable(test_game_mpitassi test_game_mpitassi.c)
+add_executable(test_game_akasparian test_game_akasparian.c)
+add_executable(test_game_mrousseau006 test_game_mrousseau006.c)
 
-target_link_libraries(recolor_text m game)
+add_library(game game_io.c game.c)
+
+target_link_libraries(recolor_text game)
+target_link_libraries(test_game_fakhoun game)
+target_link_libraries(test_game_mpitassi game)
+target_link_libraries(test_game_akasparian game)
+target_link_libraries(test_game_mrousseau006 game)
+
+include(CTest)
+enable_testing()
+set(cmds "test_game_fakhoun" "test_game_fakhoun" "test_game_fakhoun" "test_game_mpitassi" "test_game_mpitassi" "test_game_mpitassi" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_mrousseau006" "test_game_mrousseau006" "test_game_mrousseau006")
+set(args "nb_moves_max" "set_cell_init" "cell_current_color" "game_new" "set_max_moves" "copy" "game_play_one_move" "game_is_over" "game_restart" "game_new_empty" "game_delete" "game_nb_moves_cur")
+foreach(i RANGE 11)
+    list(GET cmds ${i} cmd)
+    list(GET args ${i} arg)
+    add_test(recolor-${arg} ./${cmd} ${arg})
+    set_tests_properties(recolor-${arg} PROPERTIES TIMEOUT 3)
+endforeach()
