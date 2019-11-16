@@ -4,3 +4,4 @@ recolor_text.o
 test_game_*.o
 test_game_*
 .vscode
+build/
