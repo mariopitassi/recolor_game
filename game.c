@@ -7,7 +7,8 @@
 typedef struct game_s {
     color *tab_init;
     color *tab_cur;
-    uint size;
+    uint size_x;
+    uint size_y;
     uint moves_max;
     uint moves_cur;
 } *game;
@@ -53,7 +54,7 @@ game game_copy(cgame g){
 
     game g1 = game_new(g->tab_init, g->moves_max);
 
-    for (int i = 0; i < g->size*g->size; i++) {
+    for (int i = 0; i < g->size_x*g->size_y; i++) {
         g1->tab_cur[i]=g->tab_cur[i];
     }
 
@@ -78,8 +79,8 @@ game game_copy(cgame g){
 bool full_grid(cgame g){
     color c = game_cell_current_color(g, 0, 0);
     
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
+    for (int i = 0; i < g->size_y; i++) {
+        for (int j = 0; j < g->size_x; j++) {
             if (game_cell_current_color(g, j, i) != c) {
                 return false;
             }
@@ -109,7 +110,7 @@ void game_set_cell_init(game g, uint x, uint y, color c) {
         error("Pointer NULL exception");
     }
 
-    if(x<SIZE && y<SIZE && c < NB_COLORS) {
+    if(x<g->size_x && y<g->size_y && c < NB_COLORS) {
         g->tab_init[12*y+x] = c;
         g->tab_cur[12*y+x]  = c;
     }
@@ -126,11 +127,11 @@ void game_set_max_moves(game g, uint nb_max_moves) {
 // GAME_PLAY_ONE_MOVE
 
 void static floodFill(game g, uint x, uint y, color oldcolor, color newcolor){
-    if(g->tab_cur[g->size*y+x] == oldcolor && newcolor != oldcolor){
-        g->tab_cur[g->size*y+x] = newcolor;
-	if (x < g->size - 1)
+    if(g->tab_cur[g->size_x*y+x] == oldcolor && newcolor != oldcolor){
+        g->tab_cur[g->size_x*y+x] = newcolor;
+	if (x < g->size_x - 1)
 	    floodFill(g, x+1, y, oldcolor, newcolor);
-        if (y < g->size - 1)
+        if (y < g->size_y - 1)
 	    floodFill(g, x, y+1, oldcolor, newcolor);
 	if (x > 0)
             floodFill(g, x-1, y, oldcolor, newcolor);
@@ -159,7 +160,7 @@ void game_restart(game g){
         error("Pointeur est nul");
     }
    
-    for(int i = 0; i < g->size*g->size ; i++){
+    for(int i = 0; i < g->size_x*g->size_y ; i++){
 
         g->tab_cur[i] = g->tab_init[i];
     }
@@ -204,7 +205,8 @@ game game_new(color *cells, uint nb_moves_max){
     for (int i = 0; i<SIZE*SIZE; i++){
         g->tab_cur[i] = cells[i];
     }
-    g->size = SIZE;
+    g->size_x = SIZE;
+    g->size_y = SIZE;
     g->moves_max = nb_moves_max;
     g->moves_cur = 0;
     return g;
@@ -221,7 +223,8 @@ game game_new_empty(){
     g->tab_cur = calloc(SIZE*SIZE, sizeof(color));
     if (g->tab_cur == NULL)
         error("g->tab_cur allocation went wrong\n");
-    g->size = SIZE;
+    g->size_x = SIZE;
+    g->size_y = SIZE;
     g->moves_max = 0;
     g->moves_cur = 0;
     return g;
@@ -231,7 +234,7 @@ game game_new_empty(){
 color game_cell_current_color(cgame g, uint x, uint y){
     if (g == NULL)
         error("g is not a valid pointer");
-    if (x >= g->size || y >= g->size)
+    if (x >= g->size_x || y >= g->size_y)
         error("x or y is higher than SIZE or equal");
-    return g->tab_cur[g->size*y+x];
+    return g->tab_cur[g->size_x*y+x];
 }
