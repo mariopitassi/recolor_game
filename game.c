@@ -15,8 +15,8 @@ typedef struct game_s {
 /* ************* Error handler *********** */ 
 
 // TODO: test this function
-void error(char[100] err_mess) {
-    fprintf(stderr, "Error: " + err_mess);
+void error(char* err_mess) {
+    fprintf(stderr, "Error: %s \n", err_mess);
     exit(EXIT_FAILURE);
 }
 
@@ -30,7 +30,7 @@ void error(char[100] err_mess) {
  * @pre @p g is a valid pointer toward a cgame structure
  **/
  
-uint nb_moves_cur(cgame g){
+uint game_nb_moves_cur(cgame g){
     if (g==NULL){
         error("Pointeur nul");
     }
@@ -52,17 +52,9 @@ game game_copy(cgame g){
     }
 
     game g1 = game_new(g->tab_init, g->moves_max);
-    /*game g1 = malloc(sizeof(game));
-    if (g1==NULL){
-        error("Probleme allocation structure");
-    }
 
-    g1->tab_cur = malloc((g->size*g->size)sizeof(color));
-    if (g1->tab==NULL){
-        error("Probleme allocation tab cur");
-    }*/
-    for (int i = 0; i < g->size; i++) {
-        g1->tab_cur[i]=g->tab_cur[i]);
+    for (int i = 0; i < g->size*g->size; i++) {
+        g1->tab_cur[i]=g->tab_cur[i];
     }
 
     g1->moves_cur = g->moves_cur;
@@ -102,7 +94,7 @@ bool game_is_over(cgame g){
         error("Pointeur nul");
     }
 
-    if (g->moves_cur<=g->moves_max && full_gird(g)){
+    if (g->moves_cur<=g->moves_max && full_grid(g)){
         return true;
     }
 
@@ -165,6 +157,7 @@ void game_restart(game g){
     
     if(g == NULL){
         error("Pointeur est nul");
+    }
    
     for(int i = 0; i < g->size*g->size ; i++){
 
@@ -174,9 +167,10 @@ void game_restart(game g){
     g->moves_cur = 0;
 }
 
-uint game_nb_moves_max(game g){
-    if (g == NULL)
+uint game_nb_moves_max(cgame g){
+    if (g == NULL){
         error("g is not a valid pointer");
+    }
 
     uint nb_moves_max = g->moves_max;
     return nb_moves_max;
