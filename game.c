@@ -182,59 +182,62 @@ void game_delete (game g){
     if(g == NULL)
         error("Pointeur est nul");
 
+    free(g->tab_init);
     free(g->tab_cur);
     free(g);
 }
 
-/* ************* Author : Farouk *********** */ 
+/* ************* Author : Farouk *********** */
 
 
-game game_new(color *cells, uint nb_moves_max){                     
+game game_new(color *cells, uint nb_moves_max){
     game g = malloc(sizeof(struct game_s));
-    if (g == NULL) 
-        error("g allocation went wrong\n");
-    g->tab_init = malloc(SIZE*SIZE*sizeof(color));
-    if (g->tab_init == NULL)
-        error("g->tab_init allocation went wrong\n");
-    for (int i = 0; i<SIZE*SIZE; i++){
-        g->tab_init[i] = cells[i];
-    }
-    g->tab_cur = malloc(SIZE*SIZE*sizeof(color));
-    if (g->tab_cur == NULL)
-        error("g->tab_cur allocation went wrong\n");
-    for (int i = 0; i<SIZE*SIZE; i++){
-        g->tab_cur[i] = cells[i];
-    }
+    if (g == NULL) error("g allocation went wrong\n");
+
     g->size_x = SIZE;
     g->size_y = SIZE;
     g->moves_max = nb_moves_max;
     g->moves_cur = 0;
+
+    g->tab_init = malloc(g->size_x * g->size_y * sizeof(color));
+    if (g->tab_init == NULL) error("g->tab_init allocation went wrong\n");
+    for (int i = 0; i < g->size_x * g->size_y; i++){
+        g->tab_init[i] = cells[i];
+    }
+
+    g->tab_cur = malloc(g->size_x * g->size_y * sizeof(color));
+    if (g->tab_cur == NULL) error("g->tab_cur allocation went wrong\n");
+    for (int i = 0; i < g->size_x * g->size_y; i++){
+        g->tab_cur[i] = cells[i];
+    }
+
     return g;
 }
 
 
 game game_new_empty(){
     game g = malloc(sizeof(struct game_s));
-    if (g == NULL)
-        error("g allocation went wrong\n");
-    g->tab_init = calloc(SIZE*SIZE, sizeof(color));
-    if (g->tab_init == NULL)
-        error("g->tab_init allocation went wrong\n");
-    g->tab_cur = calloc(SIZE*SIZE, sizeof(color));
-    if (g->tab_cur == NULL)
-        error("g->tab_cur allocation went wrong\n");
+    if (g == NULL) error("g allocation went wrong\n");
+
     g->size_x = SIZE;
     g->size_y = SIZE;
     g->moves_max = 0;
     g->moves_cur = 0;
+
+    g->tab_init = calloc(g->size_x * g->size_y, sizeof(color));
+    if (g->tab_init == NULL) error("g->tab_init allocation went wrong\n");
+
+    g->tab_cur = calloc(g->size_x * g->size_y, sizeof(color));
+    if (g->tab_cur == NULL) error("g->tab_cur allocation went wrong\n");
+
     return g;
 }
 
 
 color game_cell_current_color(cgame g, uint x, uint y){
-    if (g == NULL)
-        error("g is not a valid pointer");
-    if (x >= g->size_x || y >= g->size_y)
-        error("x or y is higher than SIZE or equal");
+    if (g == NULL) error("g is not a valid pointer");
+
+    if (x >= g->size_x || y >= g->size_y) error("x or y is higher than SIZE or equal");
+
     return g->tab_cur[g->size_x*y+x];
 }
