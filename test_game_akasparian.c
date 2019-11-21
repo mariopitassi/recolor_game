@@ -34,7 +34,6 @@ bool test_game_play_one_move(game g){
 bool test_game_is_over(game g){
     if(g == NULL) {
         fprintf(stderr, "Error: pb memoire\n");
-        game_delete(g);
         return false;
     }
 
@@ -74,7 +73,7 @@ bool test_game_is_over(game g){
 
     //continue de jouer apres coups max
     color next_moves[]={2,1,0,3,2,0,1};
-    for (int n=0; n<12; n++){
+    for (int n=0; n<7; n++){
         game_play_one_move(g, next_moves[n]);
         if (game_is_over(g)){
             fprintf(stderr, "Error: over mais coups max depasse\n");
