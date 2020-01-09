@@ -61,7 +61,7 @@ bool test_game_new_empty_ext(){
   uint height = 10;
   bool wrapping = true;
   //initializing a new game for the test with the testing parameters
-  game g = game_new_empty_ext(witdh, height, wrapping);
+  game g = game_new_empty_ext(width, height, wrapping);
   if (g == NULL){
     fprintf(stderr," Erreur: le tableau du jeu n'est pas initialisé");
     return false;
@@ -79,9 +79,9 @@ bool test_game_new_empty_ext(){
     return false;
   }
   // checking if all the cells have been initialized to 0
-  for (int x = 0; x <= game_width(g) - 1; x++) {
-    for (int y = 0; y <= game_height(g) - 1; y++) {
-      if (game_cell_current_color(g, y, x) != 0) {
+  for (int y = 0; y < game_width(g); y++) {
+    for (int x = 0; x < game_height(g); x++) {
+      if (game_cell_current_color(g, x, y) != 0) {
         fprintf(stderr, "Error:le tableau n'est pas initialisé à 0");
         game_delete(g);
         return false;

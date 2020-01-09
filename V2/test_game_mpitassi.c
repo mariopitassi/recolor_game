@@ -154,7 +154,7 @@ bool test_copy() {
     problem = error("height can't be different.");
   }
 
-  if(game_widht(g) != game_width(g2)) {
+  if(game_width(g) != game_width(g2)) {
     problem = error("width can't be different.");
   }
 
@@ -187,7 +187,7 @@ bool test_height() {
 
 /** TEST_WIDTH **/
 
-bool test_height() {
+bool test_width() {
   uint width = 10;
   uint height = 25;
   game g = game_new_empty_ext(width, height, false);
@@ -222,9 +222,9 @@ int main(int argc, char *argv[]) {
     ok = test_set_max_moves();
   } else if (strcmp("copy", argv[1]) == 0) {
     ok = test_copy();
-  }else if (strcmp("height")) {
+  }else if (strcmp("height", argv[1]) == 0) {
     ok = test_height();
-  }else if (strcmp("width")) {
+  }else if (strcmp("width", argv[1]) == 0) {
     ok = test_width();
   } else {
     fprintf(stderr, "Error: test \"%s\" not found!\n", argv[1]);
