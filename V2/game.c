@@ -119,8 +119,8 @@ void game_set_cell_init(game g, uint x, uint y, color c) {
     error("g is not a valid pointer");
 
   if (x < g->size_x && y < g->size_y && c < NB_COLORS) {
-    g->tab_init[12 * y + x] = c;
-    g->tab_cur[12 * y + x] = c;
+    g->tab_init[g->size_x * y + x] = c;
+    g->tab_cur[g->size_x * y + x] = c;
   }
 }
 
@@ -131,16 +131,16 @@ void game_set_max_moves(game g, uint nb_max_moves) {
   g->moves_max = nb_max_moves;
 }
 
-uint game_height(cgame game) {
-  if (game == NULL)
-    error("game allocation went wrong");
+uint game_height(cgame g) {
+  if (g == NULL)
+    error("g allocation went wrong");
 
-  return game->size_y;
+  return g->size_y;
 }
 
 uint game_width(cgame game) {
   if (game == NULL)
-    error("game allocation went wrong");
+    error("g allocation went wrong");
 
   return game->size_x;
 }
