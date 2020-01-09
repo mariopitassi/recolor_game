@@ -76,6 +76,7 @@ bool game_is_over(cgame g) {
 
 /* ************* Author : Mario *********** */
 
+
 void game_set_cell_init(game g, uint x, uint y, color c) {
   if (g == NULL || g->tab_init == NULL || g->tab_cur == NULL) {
     error("Pointer NULL exception");
@@ -212,12 +213,6 @@ color game_cell_current_color(cgame g, uint x, uint y) {
   return g->tab_cur[g->size_x * y + x];
 }
 
-
-
-
-
-
-
 /**
  * @brief Checks if the game is wrapping
  * @return true, if the game is wrapping, false otherwise, false otherwise
@@ -323,12 +318,3 @@ uint game_width(cgame game) {
 
   return game->size_x;
 }
-
-/**
- * QUESTIONS :
- *
- * Le cells passé en paramètre de la fonction game_new_ext et game_new_empty_ext
- * fait il la taille de width * height ? Doit-on le vérifier ?
- *
- *
- */

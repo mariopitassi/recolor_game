@@ -1,8 +1,7 @@
 recolor_text
 libgame.a
-recolor_text.o
-test_game_*.o
-test_game_*
+*.o
 .vscode
-build/*
+V1/build/*
+V2/build/*
 Makefile
