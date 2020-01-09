@@ -1,8 +1,8 @@
 #include "game.h"
+#include "game_io.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "game_io.h"
 
 typedef struct game_s {
   color *tab_init;
@@ -17,7 +17,7 @@ typedef struct game_s {
 /* ************* Error handler *********** */
 
 static void error(char *err_mess) {
-  fprintf(stderr, "Error: %s \n", err_mess);
+  fprintf(stderr, "Error: %s \n\n", err_mess);
   exit(EXIT_FAILURE);
 }
 
@@ -25,7 +25,7 @@ static void error(char *err_mess) {
 
 uint game_nb_moves_cur(cgame g) {
   if (g == NULL) {
-    error("Pointeur nul");
+    error("g is not a valid pointer");
   }
 
   return g->moves_cur;
@@ -33,7 +33,7 @@ uint game_nb_moves_cur(cgame g) {
 
 game game_copy(cgame g) {
   if (g == NULL) {
-    error("Pointeur nul");
+    error("g is not a valid pointer");
   }
 
   game g1 = game_new(g->tab_init, g->moves_max);
@@ -47,7 +47,11 @@ game game_copy(cgame g) {
   return g1;
 }
 
-/* Checks if all the cells have the same color */
+/**
+ * @brief Checks if all the cells have the same color
+ * @param g the game
+ * @return false if a cell is different from the first cell
+ */
 static bool full_grid(cgame g) {
   color c = game_cell_current_color(g, 0, 0);
 
@@ -64,7 +68,7 @@ static bool full_grid(cgame g) {
 
 bool game_is_over(cgame g) {
   if (g == NULL) {
-    error("Pointeur nul");
+    error("g is not a valid pointer");
   }
 
   if (g->moves_cur <= g->moves_max && full_grid(g)) {
@@ -74,13 +78,45 @@ bool game_is_over(cgame g) {
   return false;
 }
 
+game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max, bool wrapping) {
+  game g = malloc(sizeof(struct game_s));
+
+  if (g == NULL)
+    error("g allocation went wrong");
+
+  g->size_x = width;
+  g->size_y = height;
+  g->moves_max = nb_moves_max;
+  g->moves_cur = 0;
+
+  g->tab_init = malloc(g->size_x * g->size_y * sizeof(color));
+  
+  if (g->tab_init == NULL)
+    error("g->tab_init allocation went wrong");
+  
+  for (int i = 0; i < g->size_x * g->size_y; i++) {
+    g->tab_init[i] = cells[i];
+  }
+
+  g->tab_cur = malloc(g->size_x * g->size_y * sizeof(color));
+  
+  if (g->tab_cur == NULL)
+    error("g->tab_cur allocation went wrong");
+  
+  for (int i = 0; i < g->size_x * g->size_y; i++) {
+    g->tab_cur[i] = cells[i];
+  }
+
+  g->wrap = wrapping;
+
+  return g;
+}
+
 /* ************* Author : Mario *********** */
 
-
 void game_set_cell_init(game g, uint x, uint y, color c) {
-  if (g == NULL || g->tab_init == NULL || g->tab_cur == NULL) {
-    error("Pointer NULL exception");
-  }
+  if (g == NULL || g->tab_init == NULL || g->tab_cur == NULL)
+    error("g is not a valid pointer");
 
   if (x < g->size_x && y < g->size_y && c < NB_COLORS) {
     g->tab_init[12 * y + x] = c;
@@ -89,42 +125,72 @@ void game_set_cell_init(game g, uint x, uint y, color c) {
 }
 
 void game_set_max_moves(game g, uint nb_max_moves) {
-  if (g == NULL) {
-    error("Pointer NULL exception");
-  }
+  if (g == NULL)
+    error("g is not a valid pointer");
 
   g->moves_max = nb_max_moves;
 }
 
+uint game_height(cgame game) {
+  if (game == NULL)
+    error("game allocation went wrong");
+
+  return game->size_y;
+}
+
+uint game_width(cgame game) {
+  if (game == NULL)
+    error("game allocation went wrong");
+
+  return game->size_x;
+}
+
 /* ************* Author : Everyone *********** */
 
-/** Takes a position (x, y), the old color, a new color, and recursively fills
- * with the new color all the adjacent cells having the same old color **/
+/**
+ * @brief Takes the game, a position (x, y), oldcolor, newcolor and recursively
+ * fills with
+ * the new color all the adjacent cells having the same old color
+ *
+ * If game is wrapping, this function do the job.
+ *
+ * @param g the game
+ * @param x value on the x-axis of the grid
+ * @param y value on the y-axis of the grid
+ * @param oldcolor
+ * @param newcolor
+ */
 void static floodFill(game g, uint x, uint y, color oldcolor, color newcolor) {
+
   if (g->tab_cur[g->size_x * y + x] == oldcolor && newcolor != oldcolor) {
     g->tab_cur[g->size_x * y + x] = newcolor;
-    if (x < g->size_x - 1) floodFill(g, x + 1, y, oldcolor, newcolor);
-    if (y < g->size_y - 1) floodFill(g, x, y + 1, oldcolor, newcolor);
-    if (x > 0) floodFill(g, x - 1, y, oldcolor, newcolor);
-    if (y > 0) floodFill(g, x, y - 1, oldcolor, newcolor);
 
-    ///////////////////////// V2 /////////////////////////
+    if (x < g->size_x - 1)
+      floodFill(g, x + 1, y, oldcolor, newcolor);
+    if (y < g->size_y - 1)
+      floodFill(g, x, y + 1, oldcolor, newcolor);
+    if (x > 0)
+      floodFill(g, x - 1, y, oldcolor, newcolor);
+    if (y > 0)
+      floodFill(g, x, y - 1, oldcolor, newcolor);
+
     if (game_is_wrapping(g)) {
       if (x == g->size_x - 1)
         floodFill(g, (x + 1 - g->size_x), y, oldcolor, newcolor);
       if (y == g->size_y - 1)
         floodFill(g, x, (y + 1 - g->size_y), oldcolor, newcolor);
-      if (x == 0) floodFill(g, (g->size_x - 1), y, oldcolor, newcolor);
-      if (y == 0) floodFill(g, x, (g->size_y - 1), oldcolor, newcolor);
+      if (x == 0)
+        floodFill(g, (g->size_x - 1), y, oldcolor, newcolor);
+      if (y == 0)
+        floodFill(g, x, (g->size_y - 1), oldcolor, newcolor);
     }
   }
 }
 
 void game_play_one_move(game g, color c) {
-  if (g == NULL) {
-    fprintf(stderr, "g is not a valid pointer");
-    exit(EXIT_FAILURE);
-  }
+  if (g == NULL)
+    error("g is not a valid pointer");
+
   floodFill(g, 0, 0, g->tab_cur[0], c);
   g->moves_cur++;
 }
@@ -133,7 +199,7 @@ void game_play_one_move(game g, color c) {
 
 void game_restart(game g) {
   if (g == NULL) {
-    error("Pointeur est nul");
+    error("g is not a valid pointer");
   }
 
   for (int i = 0; i < g->size_x * g->size_y; i++) {
@@ -153,18 +219,48 @@ uint game_nb_moves_max(cgame g) {
 }
 
 void game_delete(game g) {
-  if (g == NULL) error("Pointeur est nul");
+  if (g == NULL) {
+    error("g is not a valid pointer");
+  }
 
   free(g->tab_init);
   free(g->tab_cur);
   free(g);
 }
 
+game game_new_empty_ext(uint width, uint height, bool wrapping) {
+  game g = malloc(sizeof(struct game_s));
+  if (g == NULL) {
+    error("g allocation went wrong");
+  }
+
+  g->size_x = width;
+  g->size_y = height;
+  g->moves_max = 0;
+  g->moves_cur = 0;
+
+  g->tab_init = calloc(g->size_x * g->size_y, sizeof(color));
+
+  if (g->tab_init == NULL) {
+    error("g->tab_init allocation went wrong");
+  }
+
+  g->tab_cur = calloc(g->size_x * g->size_y, sizeof(color));
+  if (g->tab_cur == NULL) {
+    error("g->tab_cur allocation went wrong");
+  }
+
+  g->wrap = wrapping;
+
+  return g;
+}
+
 /* ************* Author : Farouk *********** */
 
 game game_new(color *cells, uint nb_moves_max) {
   game g = malloc(sizeof(struct game_s));
-  if (g == NULL) error("g allocation went wrong\n");
+  if (g == NULL)
+    error("g allocation went wrong");
 
   g->size_x = SIZE;
   g->size_y = SIZE;
@@ -172,13 +268,15 @@ game game_new(color *cells, uint nb_moves_max) {
   g->moves_cur = 0;
 
   g->tab_init = malloc(g->size_x * g->size_y * sizeof(color));
-  if (g->tab_init == NULL) error("g->tab_init allocation went wrong\n");
+  if (g->tab_init == NULL)
+    error("g->tab_init allocation went wrong");
   for (int i = 0; i < g->size_x * g->size_y; i++) {
     g->tab_init[i] = cells[i];
   }
 
   g->tab_cur = malloc(g->size_x * g->size_y * sizeof(color));
-  if (g->tab_cur == NULL) error("g->tab_cur allocation went wrong\n");
+  if (g->tab_cur == NULL)
+    error("g->tab_cur allocation went wrong");
   for (int i = 0; i < g->size_x * g->size_y; i++) {
     g->tab_cur[i] = cells[i];
   }
@@ -188,7 +286,8 @@ game game_new(color *cells, uint nb_moves_max) {
 
 game game_new_empty() {
   game g = malloc(sizeof(struct game_s));
-  if (g == NULL) error("g allocation went wrong\n");
+  if (g == NULL)
+    error("g allocation went wrong");
 
   g->size_x = SIZE;
   g->size_y = SIZE;
@@ -196,16 +295,19 @@ game game_new_empty() {
   g->moves_cur = 0;
 
   g->tab_init = calloc(g->size_x * g->size_y, sizeof(color));
-  if (g->tab_init == NULL) error("g->tab_init allocation went wrong\n");
+  if (g->tab_init == NULL)
+    error("g->tab_init allocation went wrong");
 
   g->tab_cur = calloc(g->size_x * g->size_y, sizeof(color));
-  if (g->tab_cur == NULL) error("g->tab_cur allocation went wrong\n");
+  if (g->tab_cur == NULL)
+    error("g->tab_cur allocation went wrong");
 
   return g;
 }
 
 color game_cell_current_color(cgame g, uint x, uint y) {
-  if (g == NULL) error("g is not a valid pointer");
+  if (g == NULL)
+    error("g is not a valid pointer");
 
   if (x >= g->size_x || y >= g->size_y)
     error("x or y is higher than SIZE or equal");
@@ -213,108 +315,9 @@ color game_cell_current_color(cgame g, uint x, uint y) {
   return g->tab_cur[g->size_x * y + x];
 }
 
-/**
- * @brief Checks if the game is wrapping
- * @return true, if the game is wrapping, false otherwise, false otherwise
- * @pre @p g is a valid pointer toward a cgame structure
- **/
 bool game_is_wrapping(cgame g) {
-  if (g == NULL) error("g allocation went wrong\n");
+  if (g == NULL)
+    error("g allocation went wrong");
 
   return g->wrap;
-}
-
-/**
- * @brief Creates a new empty game having height rows and width
- * columns. All the cells will have the default color (whose value is
- * 0). The maximum number of moves is set to 0
- * @param width the width of the grid
- * @param height the height of the grid
- * @param wrapping whether or not the game is wrapping
- * @return the created game
- * @pre @p width > 0
- * @pre @p height > 0
- **/
-game game_new_empty_ext(uint width, uint height, bool wrapping) {
-  game g = malloc(sizeof(struct game_s));
-  if (g == NULL) error("g allocation went wrong\n");
-
-  g->size_x = width;
-  g->size_y = height;
-  g->moves_max = 0;
-  g->moves_cur = 0;
-
-  g->tab_init = calloc(g->size_x * g->size_y, sizeof(color));
-  if (g->tab_init == NULL) error("g->tab_init allocation went wrong\n");
-
-  g->tab_cur = calloc(g->size_x * g->size_y, sizeof(color));
-  if (g->tab_cur == NULL) error("g->tab_cur allocation went wrong\n");
-
-  g->wrap = wrapping;
-
-  return g;
-}
-
-/**
- * @brief Creates a new game and initialize it in one call
- * @param width the width of the grid
- * @param height the height of the grid
- * @param cells 1D array describing the color of each cell of the game. The
- *storage is row by row
- * @param wrapping whether or not the game is wrapping
- * @return the created game
- * @pre @p width > 0
- * @pre @p height > 0
- * @pre @p cells != NULL
- * @pre @p nb_moves_max > 0
- **/
-game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,
-                  bool wrapping) {
-  game g = malloc(sizeof(struct game_s));
-  if (g == NULL) error("g allocation went wrong\n");
-
-  g->size_x = width;
-  g->size_y = height;
-  g->moves_max = nb_moves_max;
-  g->moves_cur = 0;
-
-  g->tab_init = malloc(g->size_x * g->size_y * sizeof(color));
-  if (g->tab_init == NULL) error("g->tab_init allocation went wrong\n");
-  for (int i = 0; i < g->size_x * g->size_y; i++) {
-    g->tab_init[i] = cells[i];
-  }
-
-  g->tab_cur = malloc(g->size_x * g->size_y * sizeof(color));
-  if (g->tab_cur == NULL) error("g->tab_cur allocation went wrong\n");
-  for (int i = 0; i < g->size_x * g->size_y; i++) {
-    g->tab_cur[i] = cells[i];
-  }
-
-  g->wrap = wrapping;
-
-  return g;
-}
-
-/**
- * @brief Returns the number of rows on the grid
- * @param game the game
- * @return the height of the game
- * @pre @p g is a valid pointer toward a cgame structure
- **/
-uint game_height(cgame game) {
-  if (game == NULL) error("game allocation went wrong\n");
-
-  return game->size_y;
-}
-
-/**
- * @brief Returns the number of columns on the game
- * @param game the game
- * @return the width of the game
- * @pre @p g is a valid pointer toward a cgame structure
- **/
-uint game_width(cgame game) {
-  if (game == NULL) error("game allocation went wrong\n");
-
-  return game->size_x;
 }
