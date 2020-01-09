@@ -281,6 +281,8 @@ game game_new(color *cells, uint nb_moves_max) {
     g->tab_cur[i] = cells[i];
   }
 
+  g->wrap = false;
+
   return g;
 }
 
@@ -302,6 +304,8 @@ game game_new_empty() {
   if (g->tab_cur == NULL)
     error("g->tab_cur allocation went wrong");
 
+  g->wrap = false;
+
   return g;
 }
 
@@ -310,7 +314,7 @@ color game_cell_current_color(cgame g, uint x, uint y) {
     error("g is not a valid pointer");
 
   if (x >= g->size_x || y >= g->size_y)
-    error("x or y is higher than SIZE or equal");
+    error("x or y is higher than it should be");
 
   return g->tab_cur[g->size_x * y + x];
 }

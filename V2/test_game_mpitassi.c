@@ -179,8 +179,11 @@ bool test_height() {
 
   if(game_height(g) != height) {
     error("height isn't the same");
+    game_delete(g);
     return false;
   }
+
+  game_delete(g);
 
   return true;
 }
@@ -194,8 +197,11 @@ bool test_width() {
 
   if(game_width(g) != width) {
     error("height isn't the same");
+    game_delete(g);
     return false;
   }
+
+  game_delete(g);
 
   return true;
 }
