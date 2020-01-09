@@ -3,7 +3,7 @@
 #include "game.h"
 #include "game_io.h"
 
-/** Co-auteurs :
+/** Co-authors :
  * PITASSI Mario
  * KASPARIAN Anouche
  * ROUSSEAU Mattias
@@ -14,26 +14,26 @@ void grid_display(game g);
 void play_game(game g);
 
 int main(void) {
-  // Initialisation de la grille de début de partie.
+  // Initializing the game grid
   color tab[12*15];
 
   for (int i; i < 12*15; i++){
     tab[i] = rand()%16;
   }
 
-  // Initialisation d'une partie avec la grille ci-dessus et de SIZE coups max
+  // Initializing a game with the grid above, SIZE and Coups_max
   game g = game_new_ext(12, 15, tab, 100, true);
 
-  // Lancement de la partie 'g'
+  // Starting the game
   play_game(g);
 
-  // Suppression de la partie 'g'
+  // Free the game
   game_delete(g);
 
   return EXIT_SUCCESS;
 }
 
-// Affichage de la grille de jeu
+// Display game grid
 void grid_display(game g) {
 
   for (int y = 0; y < game_height(g); y++) {
@@ -48,7 +48,7 @@ void grid_display(game g) {
         printf("%c", c2);
       }
 
-      if (x == game_width(g) - 1) { // We have reached the edge
+      if (x == game_width(g) - 1) { // We have reached an edge
         printf("\n");
       }
     }
@@ -60,21 +60,19 @@ void grid_display(game g) {
 void play_game(game g) {
   bool we_play = true;
   while (we_play) {
-    // Affichage du statut actuel de la partie
+    // Display the current state of the game
     printf("nb coups joués : %d ; nb coups max : %d \n", game_nb_moves_cur(g),
            game_nb_moves_max(g));
 
-    // Affichage de la grille en cours
+    // Display the current game grid
     grid_display(g);
 
-    // Vérification du statut de la partie afin d'éviter de proposer de jouer un
-    // coup alors que c'est terminé.
+    // Checking the current state of the game to avoid displaying useless information
     printf(
         "Jouer un coup : (0,1,2,3,r ou q; r pour redémarrer ou q pour "
         "quitter)\n");
 
-    // À chaque tour, on attend la valeur saisie par le joueur (r, q, 0, 1, 2,
-    // 3).
+    // Each round, we wait for the player to choose a color
     char coup;
     scanf(" %c", &coup);
 
@@ -85,13 +83,13 @@ void play_game(game g) {
     }else if (coup == 'q') {
       printf("DOMMAGE \n");
       we_play = false;
-    }else if (coup >='0' && coup <= '9') {  // On convertit le char en nombre grâce à la table ASCII
+    }else if (coup >='0' && coup <= '9') {  // Converting the char into the corresponding int using the ASCII table
       game_play_one_move(g, coup - '0');
-    }else if (coup >= 'A' && coup <= 'F'){  // Conversion d'un char en int
+    }else if (coup >= 'A' && coup <= 'F'){  // Converting a char into an int
       game_play_one_move(g, coup - 'A' + 10);
     }
 
-    // Si la partie est terminée, affichage de la grille et 'BRAVO'.
+    // If the game is over, display the grid and 'BRAVO'.
     if (game_is_over(g)) {
       printf("nb coups joués : %d ; nb coups max : %d \n", game_nb_moves_cur(g),
              game_nb_moves_max(g));
