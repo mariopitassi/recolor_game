@@ -79,8 +79,8 @@ bool test_game_new_empty_ext(){
     return false;
   }
   // checking if all the cells have been initialized to 0
-  for (int y = 0; y < game_width(g); y++) {
-    for (int x = 0; x < game_height(g); x++) {
+  for (int y = 0; y < game_height(g); y++) {
+    for (int x = 0; x < game_width(g); x++) {
       if (game_cell_current_color(g, x, y) != 0) {
         fprintf(stderr, "Error:le tableau n'est pas initialisé à 0");
         game_delete(g);

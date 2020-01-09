@@ -36,7 +36,7 @@ game game_copy(cgame g) {
     error("g is not a valid pointer");
   }
 
-  game g1 = game_new(g->tab_init, g->moves_max);
+  game g1 = game_new_ext(g->size_x, g->size_y, g->tab_init, g->moves_max, g->wrap);
 
   for (int i = 0; i < g->size_x * g->size_y; i++) {
     g1->tab_cur[i] = g->tab_cur[i];
