@@ -7,12 +7,30 @@
 #include "game.h"
 
 
+/**
+ * @brief prints an error message and frees the space
+ * allocated to a given game
+ * 
+ * @param err_mess the message to print
+ * @param g the game to delete
+ * @return false always
+ */
+
+bool error(char *err_mess, game g) {
+  fprintf(stderr, "Error: %s \n\n", err_mess);
+  game_delete(g);
+  return false;
+}
+
 
 /**
- * Compares a game grid and a given array of cells
- * Returns false if there is a difference between the two
- * true otherwise
-**/
+ * @brief Compares a game grid and a given array of cells
+ * 
+ * @param g the game to compare
+ * @param tab the tab reference
+ * @return true if the grids are the same
+ * @return false at the 1st difference
+ */
 bool same_grid(game g, color* tab){
   for (int i = 0; i < game_height(g); i++) {
     for (int j = 0; j < game_width(g); j++) {
@@ -25,21 +43,7 @@ bool same_grid(game g, color* tab){
 }
 
 
-/**
- * Creates a game with a random size and maximum number of moves
- * and a given wrapping value
-**/
-/**
-game random_game(color *tab, bool wrap){
-  int m = rand();
-  int x = rand();
-  int y = rand();
-  game g = game_new_ext(x, y, tab, m, wrap);
-  return g;
-}**/
-
-
-/* ****** TEST GAME_PLAY_ONE_MOVE ***** */        //(for now only checks the 1st square)
+/* ****** TEST GAME_PLAY_ONE_MOVE ***** */
 
 bool test_game_play_one_move(game g) {
   // predicted number of moves played post-move
@@ -52,14 +56,10 @@ bool test_game_play_one_move(game g) {
 
   // checks if the result matches what we infered
   if (moves_hyp != game_nb_moves_cur(g)) {
-    fprintf(stderr, "Error: invalid number of moves\n");
-    game_delete(g);
-    return false;
+    return error("invalid number of moves",g);
   }
   if (game_cell_current_color(g, 0, 0) != c) {
-    fprintf(stderr, "Error: invalid cell color\n");
-    game_delete(g);
-    return false;
+    return error("invalid cell color",g);
   }
   game_delete(g);
   return true;
@@ -70,16 +70,14 @@ bool test_game_play_one_move(game g) {
 
 bool test_game_is_over(game g) {
   if (g == NULL) {
-    fprintf(stderr, "Error: memory problem\n");
+    fprintf(stderr, "memory problem\n");
     return false;
   }
 
   bool camarche = false;
 
   if (game_is_over(g)) {
-    fprintf(stderr, "Error: game over before it even started\n");
-    game_delete(g);
-    return false;
+    return error("game over before it even started",g);
   }
 
   // plays until the end and wins
@@ -87,9 +85,7 @@ bool test_game_is_over(game g) {
   for (int i = 0; i < 11; i++) {
     game_play_one_move(g, moves[i]);
     if (game_is_over(g)) {
-      fprintf(stderr, "Error: game over while the grid is not finished\n");
-      game_delete(g);
-      return false;
+      return error("game over while the grid is not finished",g);
     }
   }
   game_play_one_move(g, moves[11]);
@@ -103,9 +99,7 @@ bool test_game_is_over(game g) {
   for (int n = 0; n < 12; n++) {
     game_play_one_move(g, ran_moves[n]);
     if (game_is_over(g)) {
-      fprintf(stderr, "Error: game over while it was not won\n");
-      game_delete(g);
-      return false;
+      return error("game over while it was not won",g);
     }
   }
 
@@ -114,9 +108,7 @@ bool test_game_is_over(game g) {
   for (int n = 0; n < 7; n++) {
     game_play_one_move(g, next_moves[n]);
     if (game_is_over(g)) {
-      fprintf(stderr, "Error: game over while too many moves were played\n");
-      game_delete(g);
-      return false;
+      return error("game over while too many moves were played",g);
     }
   }
   
@@ -142,24 +134,27 @@ bool test_game_restart(color *tab) {
   game_restart(g);
 
   if(!same_grid(g, tab)){
-    fprintf(stderr, "Error: cells not initialized properly\n");
-    game_delete(g);
-    return false;
+    return error("cells not initialized properly",g);
   }
 
   if (game_nb_moves_cur(g) != 0 || game_nb_moves_max(g) != 15) {
-    fprintf(stderr, "Error: incorrect number of moves\n");
-    game_delete(g);
-    return false;
+    return error("incorrect number of moves",g);
   }
 
   if(game_is_wrapping(g)!=true){
-    fprintf(stderr, "Error: should be wrapping\n");
-    game_delete(g);
-    return false;
+    return error("should be wrapping",g);
   }
 
   game_delete(g);
+
+  game gf = game_new_ext(12, 12, tab, 15, false);
+  game_restart(gf);
+  if(game_is_wrapping(g)!=false){
+    return error("should not be wrapping",gf);
+  }
+
+  game_delete(gf);
+
   return true;
 }
 
@@ -172,39 +167,27 @@ bool test_game_new_ext(color *tab){
 
   // checks if everything has been properly set
   if(game_width(g)!=12){
-    fprintf(stderr, "Error: incorrect width\n");
-    game_delete(g);
-    return false;
+    return error("incorrect width",g);
   }
 
   if(game_height(g)!=12){
-    fprintf(stderr, "Error: incorrect height\n");
-    game_delete(g);
-    return false;
+    return error("incorrect height",g);
   }
 
   if(game_nb_moves_max(g)!=15){
-    fprintf(stderr, "Error: incorrect maximum number of moves\n");
-    game_delete(g);
-    return false;
+    return error("incorrect maximum number of moves",g);
   }
 
   if(game_nb_moves_cur(g)!=0){
-    fprintf(stderr, "Error: incorrect current number of moves\n");
-    game_delete(g);
-    return false;
+    return error("incorrect current number of moves",g);
   }
 
   if(game_is_wrapping(g)!=true){
-    fprintf(stderr, "Error: game should be wrapping and is not\n");
-    game_delete(g);
-    return false;
+    return error("game should be wrapping and is not",g);
   }
 
   if(!same_grid(g, tab)){
-    fprintf(stderr, "Error: cells not initialized properly\n");
-    game_delete(g);
-    return false;
+    return error("cells not initialized properly",g);
   }
 
   game_delete(g);
@@ -213,9 +196,7 @@ bool test_game_new_ext(color *tab){
   game gf = game_new_ext(12, 12, tab, 15, false);
 
   if(game_is_wrapping(gf)!=false){
-    fprintf(stderr, "Error: game is wrapping while it should not be\n");
-    game_delete(gf);
-    return false;
+    return error("game is wrapping while it should not be",gf);
   }
 
   game_delete(gf);
@@ -263,6 +244,8 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  free(game_test);
+
   // print test results
   if (ok) {
     fprintf(stderr, "Test \"%s\" finished: SUCCESS\n", argv[1]);
@@ -271,4 +254,5 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Test \"%s\" finished: FAILURE\n", argv[1]);
     return EXIT_FAILURE;
   }
+
 }
