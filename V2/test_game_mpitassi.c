@@ -131,7 +131,10 @@ bool test_copy() {
   game g2 = game_copy(g);
 
   if (g2 == NULL) {
-    problem = error("g2 is not a valid pointer.");
+    game_delete(g);
+
+    error("g2 is not a valid pointer.");
+    return false;
   }
 
   for (int i = 0; i <= SIZE - 1; i++) {
@@ -167,6 +170,9 @@ bool test_copy() {
     game_delete(g2);
     return false;
   }
+
+  game_delete(g);
+  game_delete(g2);
   return true;
 }
 
