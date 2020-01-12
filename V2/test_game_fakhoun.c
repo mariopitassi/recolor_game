@@ -17,7 +17,7 @@ color tab[] = {0, 0, 0, 2, 0, 2, 1, 0, 1, 0, 3, 0, 0, 3, 3, 1, 1, 1, 1, 3, 2,
 /* ********** TEST DE GAME_NB_MOVES_MAX ********** */
 
 bool test_game_nb_moves_max() {
-  int moves_max = 50;
+  int moves_max = 69;
 
   game g = game_new(tab, moves_max);
 
@@ -45,72 +45,45 @@ bool test_game_nb_moves_max() {
 /* ********** TEST DE GAME_SET_CELL_INIT ********** */
 
 bool test_game_set_cell_init() {
-  int moves_max = 50;
-  
-  game g = game_new(tab, moves_max);
+  game g = game_new_empty();
 
+  // Initialize every cells of g with the same values than tab
+  // Then check if they have been correctly set (if not : error)
   for (uint y = 0; y < game_height(g); y++) {
     for (uint x = 0; x < game_width(g); x++) {
-      color col = rand() % 4;
-      game_set_cell_init(g, x, y, col);
-      if (game_cell_current_color(g, x, y) != col) {
-        fprintf(stderr, "Error: invalid cell color!\n");
+      color c = tab[game_width(g) * y + x];
+      game_set_cell_init(g, x, y, c);
+      if (game_cell_current_color(g, x, y) != c) {
+        fprintf(stderr, "Error: invalid current cell color!\n");
         game_delete(g);
         return false;
       }
     }
   }
 
-  game g2 = game_new_empty();
+  game_restart(g);
 
+  // After restart, check if values match (if not : error)
   for (uint y = 0; y < game_height(g); y++) {
     for (uint x = 0; x < game_width(g); x++) {
-      color col = rand() % 4;
-      game_set_cell_init(g2, x, y, col);
-      if (game_cell_current_color(g2, x, y) != col) {
-        fprintf(stderr, "Error: invalid cell color!\n");
+      if (game_cell_current_color(g, x, y) != tab[game_width(g) * y + x]) {
+        fprintf(stderr, "Error: invalid init cell color!\n");
         game_delete(g);
-        game_delete(g2);
-        return false;
-      }
-    }
-  }
-
-  game g3 = game_new_empty();
-  for (int y = 0; y < game_height(g); y++) {
-    for (int x = 0; x < game_width(g); x++) {
-      color col = tab[game_height(g) * y + x];
-      game_set_cell_init(g3, x, y, col);
-    }
-  }
-  color ran_moves[] = {2, 1, 0, 3, 0, 1, 2, 3, 1, 0, 2, 0};
-  for (int n = 0; n < 12; n++) {
-    game_play_one_move(g3, ran_moves[n]);
-  }
-  game_restart(g3);
-  for (int y = 0; y < game_height(g); y++) {
-    for (int x = 0; x < game_width(g); x++) {
-      if (game_cell_current_color(g3, x, y) != tab[game_width(g) * y + x]) {
-        fprintf(stderr, "Error: pb apres restart\n");
-        game_delete(g);
-        game_delete(g2);
-        game_delete(g3);
         return false;
       }
     }
   }
 
   game_delete(g);
-  game_delete(g2);
-  game_delete(g3);
   return true;
 }
 
 /* ********** TEST DE GAME_CELL_CURRENT_COLOR ********** */
 
 bool test_game_cell_current_color() {
-  game g = game_new(tab, 50);
+  game g = game_new(tab, 427);
 
+  // Check if every cells of g match tab (if not : error)
   for (uint y = 0; y < game_height(g); y++) {
     for (uint x = 0; x < game_width(g); x++) {
       if (game_cell_current_color(g, x, y) != tab[game_width(g) * y + x]) {
@@ -118,33 +91,16 @@ bool test_game_cell_current_color() {
         game_delete(g);
         return false;
       }
-      color col = rand() % 4;
-      game_set_cell_init(g, x, y, col);
-      if (game_cell_current_color(g, x, y) != col) {
-        fprintf(stderr,
-                "Error: invalid cell color! (game_new--set_cell_init)\n");
-        game_delete(g);
-        return false;
-      }
     }
   }
 
   game g2 = game_new_empty();
 
-
+  // Check if every cells of g2 match 0 (if not : error)
   for (uint y = 0; y < game_height(g); y++) {
     for (uint x = 0; x < game_width(g); x++) {
       if (game_cell_current_color(g2, x, y) != 0) {
         fprintf(stderr, "Error: invalid cell color! (game_new_empty)\n");
-        game_delete(g);
-        game_delete(g2);
-        return false;
-      }
-      color col = rand() % 4;
-      game_set_cell_init(g2, x, y, col);
-      if (game_cell_current_color(g2, x, y) != col) {
-        fprintf(stderr,
-                "Error: invalid cell color! (game_new_empty--set_cell_init)\n");
         game_delete(g);
         game_delete(g2);
         return false;
@@ -160,18 +116,48 @@ bool test_game_cell_current_color() {
 /* ********** TEST DE GAME_IS_WRAPPING********** */
 
 bool test_game_is_wrapping() {
-  game g = game_new_empty_ext(12, 15, true);
 
+  // Initialize an array which allows us to check if the game is truly wrapping
+  // Allows us to check if game_play_one_move works as well
+  color wrap_tab_test[] = { 0, 0, 1, 1, 0,
+                            1, 0, 1, 0, 1,
+                            0, 0, 1, 0, 1,
+                            1, 0, 0, 0, 1,
+                            1, 1, 1, 1, 1,
+                            0, 1, 1, 1, 0 };
+
+  game g = game_new_ext(5, 6, wrap_tab_test, 5, true);
+
+  // Check if game_is_wrapping returns the correct value (if not : error)
   if (!game_is_wrapping(g)){
     fprintf(stderr, "Error : unvalid wrapping value g (false instead of true)\n");
     game_delete(g);
     return false;
   }
 
-  game g2 = game_new_empty_ext(12, 15, false);
+  game_play_one_move(g, 1);
+
+  // Check if the game is truly wrapping (game_play_one_move is working)
+  // (if not : error)
+  if (!game_is_over(g)) {
+    fprintf(stderr, "Error : game_play_one_move is not wrapping g");
+    game_delete(g);
+    return false;
+  }
+
+  game g2 = game_new_ext(5, 6, wrap_tab_test, 5, false);
 
   if (game_is_wrapping(g2)){
     fprintf(stderr, "Error : unvalid wrapping value g2 (true instead of false)\n");
+    game_delete(g);
+    game_delete(g2);
+    return false;
+  }
+
+  game_play_one_move(g2, 1);
+
+  if (game_is_over(g2)) {
+    fprintf(stderr, "Error : game_play_one_move is wrapping g2");
     game_delete(g);
     game_delete(g2);
     return false;
@@ -198,13 +184,13 @@ int main(int argc, char *argv[]) {
   // start test
   fprintf(stderr, "=> Start test fakhoun \"%s\"\n", argv[1]);
   bool ok = false;
-  if (strcmp("test_game_nb_moves_max", argv[1]) == 0)
-    ok = test_game_nb_moves_max(100);
-  else if (strcmp("test_game_set_cell_init", argv[1]) == 0)
-    ok = test_game_set_cell_init(100);
-  else if (strcmp("test_game_cell_current_color", argv[1]) == 0)
+  if (strcmp("game_nb_moves_max", argv[1]) == 0)
+    ok = test_game_nb_moves_max();
+  else if (strcmp("game_set_cell_init", argv[1]) == 0)
+    ok = test_game_set_cell_init();
+  else if (strcmp("game_cell_current_color", argv[1]) == 0)
     ok = test_game_cell_current_color();
-  else if (strcmp("test_game_is_wrapping", argv[1]) == 0)
+  else if (strcmp("game_is_wrapping", argv[1]) == 0)
     ok = test_game_is_wrapping();
   else {
     fprintf(stderr, "Error: test \"%s\" not found!\n", argv[1]);
