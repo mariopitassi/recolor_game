@@ -43,7 +43,7 @@ bool test_game_new() {
     }
   }
 
-  for (uint i = 0; i <= SIZE; i++) {
+  for (uint i = 1; i <= SIZE; i++) {
     game g2 = game_new(tab, i);
     if (g2 == NULL) {
       error("g2 is not a valid pointer.");

@@ -86,6 +86,9 @@ game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,
   if (g == NULL)
     error("g allocation went wrong");
 
+  if (width == 0 || height == 0)
+    error("width or height can't be 0");
+
   g->size_x = width;
   g->size_y = height;
   g->moves_max = nb_moves_max;
@@ -263,6 +266,9 @@ game game_new(color *cells, uint nb_moves_max) {
   game g = malloc(sizeof(struct game_s));
   if (g == NULL)
     error("g allocation went wrong");
+
+  if (nb_moves_max == 0)
+    error("nb_max_move can't be 0");
 
   g->size_x = SIZE;
   g->size_y = SIZE;
