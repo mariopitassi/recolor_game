@@ -79,8 +79,13 @@ bool game_is_over(cgame g) {
   return false;
 }
 
+<<<<<<< HEAD
 game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,
                   bool wrapping) {
+=======
+game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max, bool wrapping) {
+  if (cells == NULL) error("Unvalid cells");
+>>>>>>> 61f16ef335644bcd78d4fc6dbbbdeaca156231a9
   game g = malloc(sizeof(struct game_s));
 
   if (g == NULL)
@@ -150,8 +155,12 @@ uint game_width(cgame game) {
 /* ************* Author : Everyone *********** */
 
 /**
+<<<<<<< HEAD
  * @brief Recursively fills with the new color all the adjacent cells of (x,y)
  * having the same old color If game is wrapping, this function do the job.
+=======
+ * @brief Recursively fills with the new color all the adjacent cells (x,y) of g having the same old color. If g is wrapping, this function do the job.
+>>>>>>> 61f16ef335644bcd78d4fc6dbbbdeaca156231a9
  *
  * @param g the game
  * @param x the first coordinate of the cell
@@ -178,7 +187,7 @@ void static floodFill(game g, uint x, uint y, color oldcolor, color newcolor) {
     // if game_is_wrapping, recursivity on opposite edge when an edge is reached
     if (game_is_wrapping(g)) {
       if (x == g->size_x - 1)
-        floodFill(g, (x + 1 - g->size_x), y, oldcolor, newcolor); //
+        floodFill(g, (x + 1 - g->size_x), y, oldcolor, newcolor); 
       if (y == g->size_y - 1)
         floodFill(g, x, (y + 1 - g->size_y), oldcolor, newcolor);
       if (x == 0)
@@ -272,16 +281,14 @@ game game_new(color *cells, uint nb_moves_max) {
   g->tab_init = malloc(g->size_x * g->size_y * sizeof(color));
   if (g->tab_init == NULL)
     error("g->tab_init allocation went wrong");
-  for (int i = 0; i < g->size_x * g->size_y; i++) {
+  for (int i = 0; i < g->size_x * g->size_y; i++)
     g->tab_init[i] = cells[i];
-  }
 
   g->tab_cur = malloc(g->size_x * g->size_y * sizeof(color));
   if (g->tab_cur == NULL)
     error("g->tab_cur allocation went wrong");
-  for (int i = 0; i < g->size_x * g->size_y; i++) {
+  for (int i = 0; i < g->size_x * g->size_y; i++)
     g->tab_cur[i] = cells[i];
-  }
 
   g->wrap = false;
 
