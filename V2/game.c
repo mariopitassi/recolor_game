@@ -79,13 +79,8 @@ bool game_is_over(cgame g) {
   return false;
 }
 
-<<<<<<< HEAD
 game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,
                   bool wrapping) {
-=======
-game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max, bool wrapping) {
-  if (cells == NULL) error("Unvalid cells");
->>>>>>> 61f16ef335644bcd78d4fc6dbbbdeaca156231a9
   game g = malloc(sizeof(struct game_s));
 
   if (g == NULL)
@@ -155,12 +150,8 @@ uint game_width(cgame game) {
 /* ************* Author : Everyone *********** */
 
 /**
-<<<<<<< HEAD
  * @brief Recursively fills with the new color all the adjacent cells of (x,y)
  * having the same old color If game is wrapping, this function do the job.
-=======
- * @brief Recursively fills with the new color all the adjacent cells (x,y) of g having the same old color. If g is wrapping, this function do the job.
->>>>>>> 61f16ef335644bcd78d4fc6dbbbdeaca156231a9
  *
  * @param g the game
  * @param x the first coordinate of the cell
