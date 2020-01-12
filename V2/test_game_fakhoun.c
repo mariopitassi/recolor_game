@@ -1,8 +1,8 @@
+#include "game.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "game.h"
 
 /* ********** INITIALISATION DU TABLEAU ********** */
 
@@ -119,18 +119,15 @@ bool test_game_is_wrapping() {
 
   // Initialize an array which allows us to check if the game is truly wrapping
   // Allows us to check if game_play_one_move works as well
-  color wrap_tab_test[] = { 0, 0, 1, 1, 0,
-                            1, 0, 1, 0, 1,
-                            0, 0, 1, 0, 1,
-                            1, 0, 0, 0, 1,
-                            1, 1, 1, 1, 1,
-                            0, 1, 1, 1, 0 };
+  color wrap_tab_test[] = {0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1,
+                           1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0};
 
   game g = game_new_ext(5, 6, wrap_tab_test, 5, true);
 
   // Check if game_is_wrapping returns the correct value (if not : error)
-  if (!game_is_wrapping(g)){
-    fprintf(stderr, "Error : unvalid wrapping value g (false instead of true)\n");
+  if (!game_is_wrapping(g)) {
+    fprintf(stderr,
+            "Error : unvalid wrapping value g (false instead of true)\n");
     game_delete(g);
     return false;
   }
@@ -147,8 +144,9 @@ bool test_game_is_wrapping() {
 
   game g2 = game_new_ext(5, 6, wrap_tab_test, 5, false);
 
-  if (game_is_wrapping(g2)){
-    fprintf(stderr, "Error : unvalid wrapping value g2 (true instead of false)\n");
+  if (game_is_wrapping(g2)) {
+    fprintf(stderr,
+            "Error : unvalid wrapping value g2 (true instead of false)\n");
     game_delete(g);
     game_delete(g2);
     return false;
@@ -179,7 +177,8 @@ void usage(int argc, char *argv[]) {
 /* ********** MAIN ROUTINE ********** */
 
 int main(int argc, char *argv[]) {
-  if (argc == 1) usage(argc, argv);
+  if (argc == 1)
+    usage(argc, argv);
 
   // start test
   fprintf(stderr, "=> Start test fakhoun \"%s\"\n", argv[1]);

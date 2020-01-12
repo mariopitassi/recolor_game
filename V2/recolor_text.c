@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "game.h"
 #include "game_io.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 /** Co-authors :
  * PITASSI Mario
@@ -43,10 +43,11 @@ void grid_display(game g) {
 
       color c = game_cell_current_color(g, x, y);
 
-      if(c < 10) {
+      if (c < 10) {
         printf("%d", c);
-      }else {
-        char c2 = 'A' + (c - 10);
+      } else {
+        char c2 =
+            'A' + (c - 10); // it converts an int into a char (ASCII table)
         printf("%c", c2);
       }
 
@@ -69,10 +70,10 @@ void play_game(game g) {
     // Display the current game grid
     grid_display(g);
 
-    // Checking the current state of the game to avoid displaying useless information
-    printf(
-        "Jouer un coup : (0,1,2,3,r ou q; r pour redémarrer ou q pour "
-        "quitter)\n");
+    // Checking the current state of the game to avoid displaying useless
+    // information
+    printf("Jouer un coup : (0,1,2,3,r ou q; r pour redémarrer ou q pour "
+           "quitter)\n");
 
     // Each round, we wait for the player to choose a color
     char coup;
@@ -82,12 +83,14 @@ void play_game(game g) {
 
     if (coup == 'r') {
       game_restart(g);
-    }else if (coup == 'q') {
+    } else if (coup == 'q') {
       printf("DOMMAGE \n");
       we_play = false;
-    }else if (coup >='0' && coup <= '9') {  // Converting the char into the corresponding int using the ASCII table
+    } else if (coup >= '0' &&
+               coup <= '9') { // Converting the char into the corresponding int
+                              // using the ASCII table
       game_play_one_move(g, coup - '0');
-    }else if (coup >= 'A' && coup <= 'F'){  // Converting a char into an int
+    } else if (coup >= 'A' && coup <= 'F') { // Converting a char into an int
       game_play_one_move(g, coup - 'A' + 10);
     }
 

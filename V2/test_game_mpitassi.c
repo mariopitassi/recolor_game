@@ -139,7 +139,8 @@ bool test_copy() {
 
   for (int i = 0; i <= SIZE - 1; i++) {
     for (int j = 0; j <= SIZE - 1; j++) {
-      if (game_cell_current_color(g, j, i) != game_cell_current_color(g2, j, i)) {
+      if (game_cell_current_color(g, j, i) !=
+          game_cell_current_color(g2, j, i)) {
         problem = error("cells copied weren't initialized correctly.");
       }
     }
@@ -149,15 +150,15 @@ bool test_copy() {
     problem = error("max moves can't be different.");
   }
 
-  if(game_is_wrapping(g) != game_is_wrapping(g2)) {
+  if (game_is_wrapping(g) != game_is_wrapping(g2)) {
     problem = error("wrapping can't be different.");
   }
 
-  if(game_height(g) != game_height(g2)) {
+  if (game_height(g) != game_height(g2)) {
     problem = error("height can't be different.");
   }
 
-  if(game_width(g) != game_width(g2)) {
+  if (game_width(g) != game_width(g2)) {
     problem = error("width can't be different.");
   }
 
@@ -165,7 +166,7 @@ bool test_copy() {
     problem = error("current moves can't be different.");
   }
 
-  if(problem) {
+  if (problem) {
     game_delete(g);
     game_delete(g2);
     return false;
@@ -183,7 +184,7 @@ bool test_height() {
   uint height = 25;
   game g = game_new_empty_ext(width, height, false);
 
-  if(game_height(g) != height) {
+  if (game_height(g) != height) {
     error("height isn't the same");
     game_delete(g);
     return false;
@@ -201,7 +202,7 @@ bool test_width() {
   uint height = 25;
   game g = game_new_empty_ext(width, height, false);
 
-  if(game_width(g) != width) {
+  if (game_width(g) != width) {
     error("height isn't the same");
     game_delete(g);
     return false;
@@ -234,9 +235,9 @@ int main(int argc, char *argv[]) {
     ok = test_set_max_moves();
   } else if (strcmp("copy", argv[1]) == 0) {
     ok = test_copy();
-  }else if (strcmp("height", argv[1]) == 0) {
+  } else if (strcmp("height", argv[1]) == 0) {
     ok = test_height();
-  }else if (strcmp("width", argv[1]) == 0) {
+  } else if (strcmp("width", argv[1]) == 0) {
     ok = test_width();
   } else {
     fprintf(stderr, "Error: test \"%s\" not found!\n", argv[1]);

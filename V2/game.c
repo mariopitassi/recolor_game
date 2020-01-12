@@ -36,7 +36,8 @@ game game_copy(cgame g) {
     error("g is not a valid pointer");
   }
 
-  game g1 = game_new_ext(g->size_x, g->size_y, g->tab_init, g->moves_max, g->wrap);
+  game g1 =
+      game_new_ext(g->size_x, g->size_y, g->tab_init, g->moves_max, g->wrap);
 
   for (int i = 0; i < g->size_x * g->size_y; i++) {
     g1->tab_cur[i] = g->tab_cur[i];
@@ -78,7 +79,8 @@ bool game_is_over(cgame g) {
   return false;
 }
 
-game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max, bool wrapping) {
+game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,
+                  bool wrapping) {
   game g = malloc(sizeof(struct game_s));
 
   if (g == NULL)
@@ -90,19 +92,19 @@ game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max, bool
   g->moves_cur = 0;
 
   g->tab_init = malloc(g->size_x * g->size_y * sizeof(color));
-  
+
   if (g->tab_init == NULL)
     error("g->tab_init allocation went wrong");
-  
+
   for (int i = 0; i < g->size_x * g->size_y; i++) {
     g->tab_init[i] = cells[i];
   }
 
   g->tab_cur = malloc(g->size_x * g->size_y * sizeof(color));
-  
+
   if (g->tab_cur == NULL)
     error("g->tab_cur allocation went wrong");
-  
+
   for (int i = 0; i < g->size_x * g->size_y; i++) {
     g->tab_cur[i] = cells[i];
   }
@@ -148,8 +150,8 @@ uint game_width(cgame game) {
 /* ************* Author : Everyone *********** */
 
 /**
- * @brief Recursively fills with the new color all the adjacent cells of (x,y) having the same old color
- * If game is wrapping, this function do the job.
+ * @brief Recursively fills with the new color all the adjacent cells of (x,y)
+ * having the same old color If game is wrapping, this function do the job.
  *
  * @param g the game
  * @param x the first coordinate of the cell
@@ -158,11 +160,11 @@ uint game_width(cgame game) {
  * @param newcolor color to be used
  */
 void static floodFill(game g, uint x, uint y, color oldcolor, color newcolor) {
-  
+
   // Check if the cell (x,y) needs to be changed
   if (g->tab_cur[g->size_x * y + x] == oldcolor && newcolor != oldcolor) {
     g->tab_cur[g->size_x * y + x] = newcolor;
-	
+
     // Recursivity
     if (x < g->size_x - 1)
       floodFill(g, x + 1, y, oldcolor, newcolor); // Going right until edge
