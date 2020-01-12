@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  free(game_test);
+  game_delete(game_test);
 
   // print test results
   if (ok) {
