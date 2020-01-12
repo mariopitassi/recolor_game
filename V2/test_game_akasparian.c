@@ -45,7 +45,9 @@ bool same_grid(game g, color* tab){
 
 /* ****** TEST GAME_PLAY_ONE_MOVE ***** */
 
-bool test_game_play_one_move(game g) {
+bool test_game_play_one_move(color* tab) {
+  game g = game_new_ext(12, 12, tab, 15, true);
+
   // predicted number of moves played post-move
   int moves_hyp =
       game_nb_moves_cur(g) + 1;
@@ -68,11 +70,8 @@ bool test_game_play_one_move(game g) {
 
 /* ****** TEST GAME_IS_OVER ***** */
 
-bool test_game_is_over(game g) {
-  if (g == NULL) {
-    fprintf(stderr, "memory problem\n");
-    return false;
-  }
+bool test_game_is_over(color* tab) {
+  game g = game_new_ext(12, 12, tab, 12, false);
 
   bool camarche = false;
 
@@ -223,18 +222,15 @@ int main(int argc, char *argv[]) {
                  1, 3, 0, 1, 3, 1, 0, 0, 0, 3, 2, 3, 1, 0, 0, 1, 3, 3, 1, 1, 2,
                  2, 3, 2, 0, 0, 2, 2, 0, 2, 3, 0, 1, 1, 1, 2, 3, 0, 1};
 
-  uint coups_max = 12;
-
-  game game_test = game_new(tab, coups_max);
 
   // start test
   fprintf(stderr, "=> Start test akasparian \"%s\"\n", argv[1]);
   bool ok = false;
 
   if (strcmp("game_play_one_move", argv[1]) == 0)
-    ok = test_game_play_one_move(game_test);
+    ok = test_game_play_one_move(tab);
   else if (strcmp("game_is_over", argv[1]) == 0)
-    ok = test_game_is_over(game_test);
+    ok = test_game_is_over(tab);
   else if (strcmp("game_restart", argv[1]) == 0)
     ok = test_game_restart(tab);
   else if(strcmp("game_new_ext", argv[1]) == 0)
@@ -243,8 +239,6 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: test \"%s\" not found!\n", argv[1]);
     exit(EXIT_FAILURE);
   }
-
-  game_delete(game_test);
 
   // print test results
   if (ok) {
