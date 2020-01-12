@@ -148,35 +148,35 @@ uint game_width(cgame game) {
 /* ************* Author : Everyone *********** */
 
 /**
- * @brief Takes the game, a position (x, y), oldcolor, newcolor and recursively
- * fills with
- * the new color all the adjacent cells having the same old color
- *
+ * @brief Recursively fills with the new color all the adjacent cells of (x,y) having the same old color
  * If game is wrapping, this function do the job.
  *
  * @param g the game
- * @param x value on the x-axis of the grid
- * @param y value on the y-axis of the grid
- * @param oldcolor
- * @param newcolor
+ * @param x the first coordinate of the cell
+ * @param y the second coordinate of the cell
+ * @param oldcolor color to be changed
+ * @param newcolor color to be used
  */
 void static floodFill(game g, uint x, uint y, color oldcolor, color newcolor) {
-
+  
+  // Check if the cell (x,y) needs to be changed
   if (g->tab_cur[g->size_x * y + x] == oldcolor && newcolor != oldcolor) {
     g->tab_cur[g->size_x * y + x] = newcolor;
-
+	
+    // Recursivity
     if (x < g->size_x - 1)
-      floodFill(g, x + 1, y, oldcolor, newcolor);
+      floodFill(g, x + 1, y, oldcolor, newcolor); // Going right until edge
     if (y < g->size_y - 1)
-      floodFill(g, x, y + 1, oldcolor, newcolor);
+      floodFill(g, x, y + 1, oldcolor, newcolor); // Going down until edge
     if (x > 0)
-      floodFill(g, x - 1, y, oldcolor, newcolor);
+      floodFill(g, x - 1, y, oldcolor, newcolor); // Going left until edge
     if (y > 0)
-      floodFill(g, x, y - 1, oldcolor, newcolor);
+      floodFill(g, x, y - 1, oldcolor, newcolor); // Going up until edge
 
+    // if game_is_wrapping, recursivity on opposite edge when an edge is reached
     if (game_is_wrapping(g)) {
       if (x == g->size_x - 1)
-        floodFill(g, (x + 1 - g->size_x), y, oldcolor, newcolor);
+        floodFill(g, (x + 1 - g->size_x), y, oldcolor, newcolor); //
       if (y == g->size_y - 1)
         floodFill(g, x, (y + 1 - g->size_y), oldcolor, newcolor);
       if (x == 0)
