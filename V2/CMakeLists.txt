@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project (recolor C)
 
-set(CMAKE_C_FLAGS "-std=c99 -g -Wall")
+set(CMAKE_C_FLAGS "-std=c99 -g -Wall --coverage")
 
 add_executable(recolor_text recolor_text.c)
 add_executable(test_game_fakhoun test_game_fakhoun.c)

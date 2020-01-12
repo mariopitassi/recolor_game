@@ -4,7 +4,7 @@
 #include <string.h>
 #include "game.h"
 
-/* ********** INITIALISATION DU TABLEAU ********** */
+/* ********** TAB TEST INITIALIZATION ********** */
 
 color tab[] = {0, 0, 0, 2, 0, 2, 1, 0, 1, 0, 3, 0, 0, 3, 3, 1, 1, 1, 1, 3, 2,
                0, 1, 0, 1, 0, 1, 2, 3, 2, 3, 2, 0, 3, 3, 2, 2, 3, 1, 0, 3, 2,
@@ -14,7 +14,7 @@ color tab[] = {0, 0, 0, 2, 0, 2, 1, 0, 1, 0, 3, 0, 0, 3, 3, 1, 1, 1, 1, 3, 2,
                1, 3, 0, 1, 3, 1, 0, 0, 0, 3, 2, 3, 1, 0, 0, 1, 3, 3, 1, 1, 2,
                2, 3, 2, 0, 0, 2, 2, 0, 2, 3, 0, 1, 1, 1, 2, 3, 0, 1};
 
-/* ********** TEST DE GAME_NB_MOVES_MAX ********** */
+/* ********** GAME_NB_MOVES_MAX TEST********** */
 
 bool test_game_nb_moves_max() {
   int moves_max = 69;
@@ -42,7 +42,7 @@ bool test_game_nb_moves_max() {
   return true;
 }
 
-/* ********** TEST DE GAME_SET_CELL_INIT ********** */
+/* ********** GAME_SET_CELL_INIT TEST ********** */
 
 bool test_game_set_cell_init() {
   game g = game_new_empty();
@@ -78,7 +78,7 @@ bool test_game_set_cell_init() {
   return true;
 }
 
-/* ********** TEST DE GAME_CELL_CURRENT_COLOR ********** */
+/* ********** GAME_CELL_CURRENT_COLOR TEST ********** */
 
 bool test_game_cell_current_color() {
   game g = game_new(tab, 427);
@@ -113,7 +113,7 @@ bool test_game_cell_current_color() {
   return true;
 }
 
-/* ********** TEST DE GAME_IS_WRAPPING********** */
+/* ********** GAME_IS_WRAPPING TEST ********** */
 
 bool test_game_is_wrapping() {
 

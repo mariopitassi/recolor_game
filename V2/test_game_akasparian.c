@@ -34,7 +34,7 @@ bool error(char *err_mess, game g) {
 bool same_grid(game g, color* tab){
   for (int i = 0; i < game_height(g); i++) {
     for (int j = 0; j < game_width(g); j++) {
-      if (game_cell_current_color(g, j, i) != tab[game_height(g) * i + j]) {
+      if (game_cell_current_color(g, j, i) != tab[game_width(g) * i + j]) {
         return false;
       }
     }
@@ -148,7 +148,7 @@ bool test_game_restart(color *tab) {
 
   game gf = game_new_ext(12, 12, tab, 15, false);
   game_restart(gf);
-  if(game_is_wrapping(g)!=false){
+  if(game_is_wrapping(gf)!=false){
     return error("should not be wrapping",gf);
   }
 
