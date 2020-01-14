@@ -123,7 +123,7 @@ void game_set_cell_init(game g, uint x, uint y, color c) {
   if (g == NULL || g->tab_init == NULL || g->tab_cur == NULL)
     error("g is not a valid pointer");
 
-  if (x < g->size_x && y < g->size_y && c < NB_COLORS) {
+  if (x < g->size_x && y < g->size_y) {
     g->tab_init[g->size_x * y + x] = c;
     g->tab_cur[g->size_x * y + x] = c;
   }

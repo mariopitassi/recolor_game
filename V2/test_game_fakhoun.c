@@ -17,7 +17,7 @@ color tab[] = {0, 0, 0, 2, 0, 2, 1, 0, 1, 0, 3, 0, 0, 3, 3, 1, 1, 1, 1, 3, 2,
 /* ********** GAME_NB_MOVES_MAX TEST********** */
 
 bool test_game_nb_moves_max() {
-  int moves_max = 69;
+  uint moves_max = 69;
 
   game g = game_new(tab, moves_max);
 
@@ -97,8 +97,8 @@ bool test_game_cell_current_color() {
   game g2 = game_new_empty();
 
   // Check if every cells of g2 match 0 (if not : error)
-  for (uint y = 0; y < game_height(g); y++) {
-    for (uint x = 0; x < game_width(g); x++) {
+  for (uint y = 0; y < game_height(g2); y++) {
+    for (uint x = 0; x < game_width(g2); x++) {
       if (game_cell_current_color(g2, x, y) != 0) {
         fprintf(stderr, "Error: invalid cell color! (game_new_empty)\n");
         game_delete(g);
