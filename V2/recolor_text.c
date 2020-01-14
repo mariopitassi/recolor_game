@@ -39,8 +39,9 @@ int main(void) {
 void grid_display(game g) {
 
   // Display the current state of the game
-  printf("nb coups joués : %d ; nb coups max : %d \n", game_nb_moves_cur(g), game_nb_moves_max(g));
-  
+  printf("nb coups joués : %d ; nb coups max : %d \n", game_nb_moves_cur(g),
+         game_nb_moves_max(g));
+
   for (int y = 0; y < game_height(g); y++) {
     for (int x = 0; x < game_width(g); x++) {
 
@@ -49,8 +50,7 @@ void grid_display(game g) {
       if (c < 10) {
         printf("%d", c);
       } else {
-        char c2 =
-            'A' + (c - 10); // Converting an int into a char (ASCII table)
+        char c2 = 'A' + (c - 10); // Converting an int into a char (ASCII table)
         printf("%c", c2);
       }
 
@@ -84,10 +84,12 @@ void play_game(game g) {
     } else if (coup == 'q') {
       printf("DOMMAGE \n");
       we_play = false;
-    }else if (coup >='0' && coup <= '9') {  
-      game_play_one_move(g, coup - '0');  // Converting a char into an int (ASCII table)
-    }else if (coup >= 'A' && coup <= 'F'){  
-      game_play_one_move(g, coup - 'A' + 10); // Converting a char into an int (ASCII table)
+    } else if (coup >= '0' && coup <= '9') {
+      game_play_one_move(
+          g, coup - '0'); // Converting a char into an int (ASCII table)
+    } else if (coup >= 'A' && coup <= 'F') {
+      game_play_one_move(
+          g, coup - 'A' + 10); // Converting a char into an int (ASCII table)
     }
 
     // If the game is over, display the grid and 'BRAVO'.
