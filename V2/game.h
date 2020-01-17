@@ -26,7 +26,8 @@ have a
  * amount of moves left will be decreased by 1.
  *
  * For further details on the rules, see <a
- * href="https://www.chiark.greenend.org.uk/~sgtatham/puzzles/doc/flood.html">here</a>.
+ *
+href="https://www.chiark.greenend.org.uk/~sgtatham/puzzles/doc/flood.html">here</a>.
  *
  * *
  * Here is an example of a game and its solution.
