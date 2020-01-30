@@ -11,20 +11,157 @@
  * @param size 
  * @return char* 
  */
-static char* read_one_line(FILE* f, uint* size) {
-
+static char* read_one_line(FILE* f, long* size) {
+  char* s = malloc(MAXLINELEN*sizeof(char));
+  if(s == NULL){
+    fprintf(stderr, "Error: string allocation pb\n");
+    exit(EXIT_FAILURE);
+  }
+  long old_pos = ftell(f);
+  long len = 0;
+  if(fgets(s, MAXLINELEN, f)!=NULL){
+    len = ftell(f)-old_pos;
+    if(s[len-1] == '\n'){
+      s[len-1] = '\0';
+      len--;
+    }else{
+      if(!feof(f)){
+        fprintf(stderr,"Line too long...");
+        exit(EXIT_FAILURE);
+      }
+    }
+    *size = len;
+    return s;
+  }
+  free(s);
+  return NULL;
 }
+
+
 /**
- * @brief Extract data from the first line of the file.
+ * @brief extract data from a given line
  * 
- * @param w 
- * @param h 
- * @param nb_move_max 
- * @param is_wrap 
+ * @param line 
+ * @param size 
+ * @return color* format color* pck je m'en sers que pour le color tab mais à voir dans le futur
  */
-static void convert_first_line(uint* w, uint* h, uint* nb_move_max, bool* is_wrap) {
-
+static color* convert_line(char* line, long* size){
+  color* tab = malloc((*size)*sizeof(color));
+  if(tab == NULL){
+    exit(EXIT_FAILURE);
+  }
+  long tab_s = 0;
+  char* token = strtok(line," ");
+  while(token != NULL){
+    char* endval = token;
+    long val = strtol(token, &endval, 10);
+    if ((*endval) == '\0') {
+      color cval = (color) val;
+      tab[tab_s] = cval;
+      tab_s++;
+    }else{
+      free(tab);
+      return NULL;
+    }
+    token = strtok(NULL, " ");
+  }
+  return tab;
 }
+
+
+/**
+ * @brief extract the color tab from the file
+ * 
+ * @param fname 
+ * @param width 
+ * @param height 
+ * @param psize 
+ * @return color* array of colors for the game to load
+ */
+static color* read_tab(char* fname, int width, int height, long* psize){
+  FILE* f = fopen(fname,"r");
+  if(f == NULL){
+    fprintf(stderr,"Error: problem opening file");
+    exit(EXIT_FAILURE);
+  }
+
+  color* tab = (color*) malloc(width*height*sizeof(color));
+  if(tab == NULL){
+    exit(EXIT_FAILURE);
+  }
+  
+  char* line = read_one_line(f, psize);
+
+  for(int h=0; h<height; h++){
+    line = read_one_line(f, psize);
+    color* arr = convert_line(line, psize);
+    for(int i=0; i<width; i++){
+      tab[i+h*width]=arr[i];
+    }
+    free(arr);
+    free(line);
+  }
+  fclose(f);
+  return tab;
+}
+
+
+/**
+ * @brief extract data from the first line of the file
+ * 
+ * @param fname 
+ * @param psize 
+ * @return int* int* array with the basic info for the game
+ *          (width, height, max_moves, swap)
+ */
+static int* read_infos(char* fname, long* psize){
+  FILE* f = fopen(fname,"r");
+  if(f == NULL){
+    fprintf(stderr,"Error: problem opening file");
+    exit(EXIT_FAILURE);
+  }
+  
+  char* line = read_one_line(f, psize);
+
+  // j'avais un pb de segfault quand j'utilisais convert_line
+  // là mais je sais pas pourquoi... (ca cassait sur le dernier caractère)
+  // en attendant de trouver j'en ai fait une version qui bloque pas
+  // mais c'est pas très flexible du coup
+
+  int* tab = (int*) malloc(4*sizeof(int)); // pr stocker les infos
+  if(tab == NULL){
+    exit(EXIT_FAILURE);
+  }
+  char* token = strtok(line," ");
+  for(int i=0; i<3; i++){
+    char* endval = token;
+    long val = strtol(token, &endval, 10);
+    if ((*endval)=='\0') {
+      int ival = (int) val;
+      tab[i]=ival;
+    }else{
+      free(tab);
+      return NULL;
+    }
+    token = strtok(NULL, " ");
+  }
+
+  int swap;
+  if((*token)=='N'){
+    swap=0;
+  }else{
+    swap=1;
+  }
+  tab[3]=(int)swap;
+
+  free(line);
+  fclose(f);
+  return tab;
+}
+
+
+
+/* *********** GAME_LOAD *********** */
 
 /**
  * @brief Creates a game by loading its description in a file
@@ -35,24 +172,45 @@ static void convert_first_line(uint* w, uint* h, uint* nb_move_max, bool* is_wra
 game game_load(char *filename) {
 
   FILE* f = fopen(filename, "r");
-
-
   if (f == NULL) {
     fprintf(stderr, "Bad pointer");
     exit(EXIT_FAILURE);
   }
-
-  uint width;
-  uint height;
-  uint nb_move_max;
-  bool is_wrap; 
-
-  convert_first_line(&width, &height, &nb_move_max, &is_wrap);
-
-  color* tab = malloc(sizeof(color)*width*height);
-
   fclose(f);
+
+  /* lire 1ere ligne puis utiliser taille
+      pr allouer mem pr un tab
+    lire le reste et tt stocker ds said tab
+  */
+
+  long size = 0; // pr readnextline
+
+  // 1st line
+  int* infos= read_infos(filename, &size);
+  int width = infos[0];
+  int height = infos[1];
+  int nb_mm = infos[2];
+  bool swap;
+
+  if(infos[3]==0){
+    swap = false;
+  }else{
+    swap = true;
+  }
+
+  // color tab
+  color* game_tab = read_tab(filename, width, height, &size);
+
+  game g = game_new_ext(width, height, game_tab, nb_mm, swap);
+
+  free(infos);
+  free(game_tab);
+  return g;
 }
+
+
+
+/* *********** GAME_SAVE *********** */
 
 /**
  * @brief Save a game in a file
