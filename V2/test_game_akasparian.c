@@ -76,7 +76,7 @@ bool test_game_is_over(color *tab) {
 
   // plays until the end and wins
   color moves[] = {3, 1, 3, 1, 0, 3, 1, 0, 1, 3, 2, 0};
-  for (int i = 0; i < 11; i++) {
+  for (int i = 0; i < 12; i++) {
     game_play_one_move(g, moves[i]);
     if (game_is_over(g)) {
       return error("game over while the grid is not finished", g);
@@ -142,7 +142,7 @@ bool test_game_restart(color *tab) {
 
   game gf = game_new_ext(12, 12, tab, 15, false);
   game_restart(gf);
-  if (game_is_wrapping(g) != false) {
+  if (game_is_wrapping(gf) != false) {
     return error("should not be wrapping", gf);
   }
 

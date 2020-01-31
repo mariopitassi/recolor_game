@@ -92,7 +92,9 @@ static color* read_tab(char* fname, int width, int height, long* psize){
     exit(EXIT_FAILURE);
   }
   
+  // jump the first line
   char* line = read_one_line(f, psize);
+  free(line);
 
   for(int h=0; h<height; h++){
     line = read_one_line(f, psize);
@@ -143,6 +145,7 @@ static int* read_infos(char* fname, long* psize){
       tab[i]=ival;
     }else{
       free(tab);
+      free(line);
       return NULL;
     }
     token = strtok(NULL, " ");
@@ -192,13 +195,7 @@ game game_load(char *filename) {
   int width = infos[0];
   int height = infos[1];
   int nb_mm = infos[2];
-  bool swap;
-
-  if(infos[3]==0){
-    swap = false;
-  }else{
-    swap = true;
-  }
+  bool swap = (infos[3] != 0);
 
   // color tab
   color* game_tab = read_tab(filename, width, height, &size);
