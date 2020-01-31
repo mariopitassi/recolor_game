@@ -5,3 +5,4 @@ libgame.a
 V1/build/
 V2/build/
 Makefile
+.DS_Store
