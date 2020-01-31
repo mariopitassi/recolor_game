@@ -1,5 +1,7 @@
 IMPLEMENTATION FONCTIONS GAME.C
 
+factoriser game_new et game_new_empty
+
 Mario
 - set_max_moves
 - set_cell_init

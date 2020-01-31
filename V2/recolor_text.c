@@ -16,7 +16,7 @@ void play_game(game g);
 int main(int argc, char* argv[]) {
 
   if(argc == 1) {
-    fprintf(stderr, "Usage : ./recolor_text <filename>");
+    fprintf(stderr, "Usage : ./recolor_text <filename>\n");
     exit(EXIT_FAILURE);
   }
 

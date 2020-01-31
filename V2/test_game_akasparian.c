@@ -195,8 +195,6 @@ bool test_game_new_ext(color *tab) {
   return true;
 }
 
-
-
 /* ****** TEST GAME_LOAD ***** */
 
 bool test_game_load(){
