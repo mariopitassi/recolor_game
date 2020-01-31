@@ -1,6 +1,8 @@
 #include "game_io.h"
 #include "game.h"
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 #define MAXLINELEN 4096
 
@@ -72,8 +74,8 @@ static color* convert_line(char* line, long* size){
 /**
  * @brief extract the color tab from the file
  * 
- * @param fname 
- * @param width 
+ * @param fname
+ * @param width
  * @param height 
  * @param psize 
  * @return color* array of colors for the game to load
