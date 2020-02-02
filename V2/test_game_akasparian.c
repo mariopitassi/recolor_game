@@ -209,6 +209,12 @@ bool test_game_load() {
       2, 9, 6, 2, 6, 5, 3, 6, 3, 5, 2, 6, 2, 4, 8, 1, 7, 7, 1, 0, 9, 4, 1, 9, 0,
       6, 8, 8, 7, 7, 6, 3, 1, 9, 3, 3, 3, 0, 3, 2, 8, 9, 4, 9, 8};
 
+  game g1 = game_new_ext(17, 10, grid, 24, true);
+
+  game_save(g1, "horizontal_game2S.rec");
+
+  game_delete(g1);
+
   game g = game_load("horizontal_game2S.rec");
 
   if (game_is_wrapping(g) != true) {
@@ -259,11 +265,11 @@ bool test_game_save() {
 
   game_delete(g);
 
-  FILE *f = fopen("test_save.rec", "r");
-  if (f == NULL) {
-    return error("file not properly created?", g);
-  }
-  fclose(f);
+  // FILE *f = fopen("test_save.rec", "r");
+  // if (f == NULL) {
+  //  return error("file not properly created?", g);
+  //}
+  // fclose(f);
 
   game gs = game_load("test_save.rec");
 

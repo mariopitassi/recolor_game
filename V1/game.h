@@ -16,7 +16,8 @@
  *  indicates the column.
  *
  * The goal of the game is to color the whole grid with the same color
- * in less than the number of allowed steps. Initially, the cells of the grid have a
+ * in less than the number of allowed steps. Initially, the cells of the grid
+have a
  * random color. After each move, the player can fill the top left
  * cell in a color of his choice. Then any cell currently forming a
  * contiguous region with the top left cell (i.e.every cell
@@ -25,7 +26,8 @@
  * amount of moves left will be decreased by 1.
  *
  * For further details on the rules, see <a
- * href="https://www.chiark.greenend.org.uk/~sgtatham/puzzles/doc/flood.html">here</a>.
+ *
+href="https://www.chiark.greenend.org.uk/~sgtatham/puzzles/doc/flood.html">here</a>.
  *
  * *
  * Here is an example of a game and its solution.
@@ -64,15 +66,17 @@ typedef unsigned int uint;
 typedef uint color;
 
 #define RED 0
-#define GREEN 1 // deprecated
-#define BLUE 2 // deprecated
-#define YELLOW 3  // deprecated
+#define GREEN 1     // deprecated
+#define BLUE 2      // deprecated
+#define YELLOW 3    // deprecated
 #define NB_COLORS 4 // deprecated
 
 /**
- * @brief The structure pointer that stores the game. To create a game, you can proceed in two ways:
+ * @brief The structure pointer that stores the game. To create a game, you can
+ *proceed in two ways:
  * just call game_new(),
- * or first create an empty game with game_new_empty(), and then initialize it with game_set_cell_init() and game_set_max_moves().
+ * or first create an empty game with game_new_empty(), and then initialize it
+ *with game_set_cell_init() and game_set_max_moves().
  **/
 typedef struct game_s *game;
 
@@ -87,7 +91,8 @@ typedef const struct game_s *cgame;
 
 /**
  * @brief Creates a new game and initializes it in one call.
- * @param cells 1D array describing the color of each cell of the game. The storage is row by row
+ * @param cells 1D array describing the color of each cell of the game. The
+ *storage is row by row
  * @param nb_max_moves the value of the maximum number of moves
  * @return the created game
  * @pre @p cells is an initialized array of size SIZE*SIZE.
@@ -95,17 +100,18 @@ typedef const struct game_s *cgame;
  **/
 game game_new(color *cells, uint nb_moves_max);
 
-
 /**
  * @brief Creates an empty game.
- * @details Creates an empty game having SIZE rows and SIZE columns. All the cells will have the default color
+ * @details Creates an empty game having SIZE rows and SIZE columns. All the
+ *cells will have the default color
  * (whose value is RED). The maximum number of moves is set to 0.
  * @return The created game
  **/
 game game_new_empty();
 
 /**
- * @brief Sets the initial color (and the current color) of the cell located at given coordinates.
+ * @brief Sets the initial color (and the current color) of the cell located at
+ *given coordinates.
  * @param g the game
  * @param x the first coordinate of the cell
  * @param y the second coordinate of the cell
@@ -223,7 +229,8 @@ game game_new_empty_ext(uint width, uint height, bool wrapping);
  * @brief Creates a new game and initialize it in one call
  * @param width the width of the grid
  * @param height the height of the grid
- * @param cells 1D array describing the color of each cell of the game. The storage is row by row
+ * @param cells 1D array describing the color of each cell of the game. The
+ *storage is row by row
  * @param wrapping whether or not the game is wrapping
  * @return the created game
  * @pre @p width > 0
@@ -231,7 +238,8 @@ game game_new_empty_ext(uint width, uint height, bool wrapping);
  * @pre @p cells != NULL
  * @pre @p nb_moves_max > 0
  **/
-game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,  bool wrapping);
+game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,
+                  bool wrapping);
 
 /**
  * @brief Returns the number of rows on the grid
@@ -249,5 +257,4 @@ uint game_height(cgame game);
  **/
 uint game_width(cgame game);
 
-
-#endif  // __GAME_H__
+#endif // __GAME_H__
