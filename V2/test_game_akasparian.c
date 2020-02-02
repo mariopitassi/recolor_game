@@ -198,34 +198,32 @@ bool test_game_new_ext(color *tab) {
 
 /* ****** TEST GAME_LOAD ***** */
 
-bool test_game_load(){
+bool test_game_load() {
 
-  color grid[] = {2, 2, 2, 2, 1, 1, 9, 6, 1, 4, 3, 2, 5, 1, 7, 1, 7,
-                  2, 7, 4, 5, 5, 3, 9, 3, 1, 2, 7, 5, 5, 2, 6, 6, 7,
-                  5, 9, 1, 5, 3, 9, 2, 8, 8, 2, 8, 5, 8, 2, 9, 5, 5,
-                  5, 8, 1, 0, 9, 3, 9, 2, 7, 8, 2, 5, 8, 5, 6, 4, 0,
-                  0, 5, 0, 2, 1, 0, 9, 8, 9, 7, 5, 2, 3, 7, 1, 1, 8,
-                  1, 6, 5, 5, 2, 4, 9, 8, 3, 6, 5, 1, 1, 0, 0, 1, 3,
-                  7, 4, 9, 6, 4, 7, 6, 5, 0, 4, 2, 4, 0, 5, 2, 3, 2,
-                  1, 0, 5, 0, 8, 5, 2, 9, 6, 2, 6, 5, 3, 6, 3, 5, 2,
-                  6, 2, 4, 8, 1, 7, 7, 1, 0, 9, 4, 1, 9, 0, 6, 8, 8,
-                  7, 7, 6, 3, 1, 9, 3, 3, 3, 0, 3, 2, 8, 9, 4, 9, 8};
+  color grid[] = {
+      2, 2, 2, 2, 1, 1, 9, 6, 1, 4, 3, 2, 5, 1, 7, 1, 7, 2, 7, 4, 5, 5, 3, 9, 3,
+      1, 2, 7, 5, 5, 2, 6, 6, 7, 5, 9, 1, 5, 3, 9, 2, 8, 8, 2, 8, 5, 8, 2, 9, 5,
+      5, 5, 8, 1, 0, 9, 3, 9, 2, 7, 8, 2, 5, 8, 5, 6, 4, 0, 0, 5, 0, 2, 1, 0, 9,
+      8, 9, 7, 5, 2, 3, 7, 1, 1, 8, 1, 6, 5, 5, 2, 4, 9, 8, 3, 6, 5, 1, 1, 0, 0,
+      1, 3, 7, 4, 9, 6, 4, 7, 6, 5, 0, 4, 2, 4, 0, 5, 2, 3, 2, 1, 0, 5, 0, 8, 5,
+      2, 9, 6, 2, 6, 5, 3, 6, 3, 5, 2, 6, 2, 4, 8, 1, 7, 7, 1, 0, 9, 4, 1, 9, 0,
+      6, 8, 8, 7, 7, 6, 3, 1, 9, 3, 3, 3, 0, 3, 2, 8, 9, 4, 9, 8};
 
   game g = game_load("horizontal_game2S.rec");
 
-  if(game_is_wrapping(g)!=true){
+  if (game_is_wrapping(g) != true) {
     return error("game should be wrapping", g);
   }
-  if(game_nb_moves_max(g)!=24){
+  if (game_nb_moves_max(g) != 24) {
     return error("wrong max number of moves", g);
   }
-  if(game_width(g)!=17){
+  if (game_width(g) != 17) {
     return error("wrong width", g);
   }
-  if(game_height(g)!=10){
+  if (game_height(g) != 10) {
     return error("wrong height", g);
   }
-  if(!same_grid(g, grid)){
+  if (!same_grid(g, grid)) {
     return error("incorrect grid", g);
   }
 
@@ -233,11 +231,9 @@ bool test_game_load(){
   return true;
 }
 
-
 /* ****** TEST GAME_SAVE ***** */
 
-
-bool test_game_save(){
+bool test_game_save() {
 
   /* 2 options pr le test
          - on save un game puis on le charge et on verifie que
@@ -246,18 +242,16 @@ bool test_game_save(){
             été écrit correctement
   */
 
- // OPTION 1
+  // OPTION 1
 
-  color grid[] = {2, 2, 2, 2, 1, 1, 9, 6, 1, 4, 3, 2, 5, 1, 7, 1, 7,
-                  2, 7, 4, 5, 5, 3, 9, 3, 1, 2, 7, 5, 5, 2, 6, 6, 7,
-                  5, 9, 1, 5, 3, 9, 2, 8, 8, 2, 8, 5, 8, 2, 9, 5, 5,
-                  5, 8, 1, 0, 9, 3, 9, 2, 7, 8, 2, 5, 8, 5, 6, 4, 0,
-                  0, 5, 0, 2, 1, 0, 9, 8, 9, 7, 5, 2, 3, 7, 1, 1, 8,
-                  1, 6, 5, 5, 2, 4, 9, 8, 3, 6, 5, 1, 1, 0, 0, 1, 3,
-                  7, 4, 9, 6, 4, 7, 6, 5, 0, 4, 2, 4, 0, 5, 2, 3, 2,
-                  1, 0, 5, 0, 8, 5, 2, 9, 6, 2, 6, 5, 3, 6, 3, 5, 2,
-                  6, 2, 4, 8, 1, 7, 7, 1, 0, 9, 4, 1, 9, 0, 6, 8, 8,
-                  7, 7, 6, 3, 1, 9, 3, 3, 3, 0, 3, 2, 8, 9, 4, 9, 8};
+  color grid[] = {
+      2, 2, 2, 2, 1, 1, 9, 6, 1, 4, 3, 2, 5, 1, 7, 1, 7, 2, 7, 4, 5, 5, 3, 9, 3,
+      1, 2, 7, 5, 5, 2, 6, 6, 7, 5, 9, 1, 5, 3, 9, 2, 8, 8, 2, 8, 5, 8, 2, 9, 5,
+      5, 5, 8, 1, 0, 9, 3, 9, 2, 7, 8, 2, 5, 8, 5, 6, 4, 0, 0, 5, 0, 2, 1, 0, 9,
+      8, 9, 7, 5, 2, 3, 7, 1, 1, 8, 1, 6, 5, 5, 2, 4, 9, 8, 3, 6, 5, 1, 1, 0, 0,
+      1, 3, 7, 4, 9, 6, 4, 7, 6, 5, 0, 4, 2, 4, 0, 5, 2, 3, 2, 1, 0, 5, 0, 8, 5,
+      2, 9, 6, 2, 6, 5, 3, 6, 3, 5, 2, 6, 2, 4, 8, 1, 7, 7, 1, 0, 9, 4, 1, 9, 0,
+      6, 8, 8, 7, 7, 6, 3, 1, 9, 3, 3, 3, 0, 3, 2, 8, 9, 4, 9, 8};
 
   game g = game_new_ext(17, 10, grid, 27, false);
 
@@ -265,36 +259,33 @@ bool test_game_save(){
 
   game_delete(g);
 
-  FILE* f = fopen("test_save.rec", "r");
-  if(f==NULL){
+  FILE *f = fopen("test_save.rec", "r");
+  if (f == NULL) {
     return error("file not properly created?", g);
   }
   fclose(f);
 
   game gs = game_load("test_save.rec");
 
-  if(game_is_wrapping(gs)!=false){
+  if (game_is_wrapping(gs) != false) {
     return error("game should be wrapping", gs);
   }
-  if(game_nb_moves_max(gs)!=27){
+  if (game_nb_moves_max(gs) != 27) {
     return error("wrong max number of moves", gs);
   }
-  if(game_width(gs)!=17){
+  if (game_width(gs) != 17) {
     return error("wrong width", gs);
   }
-  if(game_height(gs)!=10){
+  if (game_height(gs) != 10) {
     return error("wrong height", gs);
   }
-  if(!same_grid(gs, grid)){
+  if (!same_grid(gs, grid)) {
     return error("incorrect grid", gs);
   }
 
   game_delete(gs);
   return true;
 }
-
-
-
 
 /* ****** USAGE ***** */
 void usage(int argc, char *argv[]) {
@@ -329,7 +320,8 @@ int main(int argc, char *argv[]) {
     ok = test_game_new_ext(tab);
   else if (strcmp("game_load", argv[1]) == 0)
     ok = test_game_load();
-  else if (strcmp("game_save", argv[1]) == 0)       // j'ai changé ça mais ps encore le cmakelists par contre
+  else if (strcmp("game_save", argv[1]) ==
+           0) // j'ai changé ça mais ps encore le cmakelists par contre
     ok = test_game_save();
   else {
     fprintf(stderr, "Error: test \"%s\" not found!\n", argv[1]);

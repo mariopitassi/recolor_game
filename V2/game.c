@@ -17,7 +17,7 @@ typedef struct game_s {
 /* ************* Error handler *********** */
 
 static void error(bool cond, char *err_mess) {
-  if(cond) {
+  if (cond) {
     fprintf(stderr, "Error: %s \n\n", err_mess);
     exit(EXIT_FAILURE);
   }
@@ -26,7 +26,7 @@ static void error(bool cond, char *err_mess) {
 /* ************* Author : Anouche *********** */
 
 uint game_nb_moves_cur(cgame g) {
-  error(g == NULL,"g is not a valid pointer");
+  error(g == NULL, "g is not a valid pointer");
   return g->moves_cur;
 }
 
@@ -77,8 +77,8 @@ bool game_is_over(cgame g) {
 game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,
                   bool wrapping) {
   game g = malloc(sizeof(struct game_s));
-  
-  error(g == NULL,"g allocation went wrong");
+
+  error(g == NULL, "g allocation went wrong");
 
   error(width == 0 || height == 0, "width or height can't be 0");
 
@@ -111,7 +111,8 @@ game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,
 /* ************* Author : Mario *********** */
 
 void game_set_cell_init(game g, uint x, uint y, color c) {
-  error(g == NULL || g->tab_init == NULL || g->tab_cur == NULL, "g is not a valid pointer");
+  error(g == NULL || g->tab_init == NULL || g->tab_cur == NULL,
+        "g is not a valid pointer");
 
   if (x < g->size_x && y < g->size_y) {
     g->tab_init[g->size_x * y + x] = c;
@@ -244,9 +245,7 @@ game game_new(color *cells, uint nb_moves_max) {
   return game_new_ext(SIZE, SIZE, cells, nb_moves_max, false);
 }
 
-game game_new_empty() {
-  return game_new_empty_ext(SIZE, SIZE, false);
-}
+game game_new_empty() { return game_new_empty_ext(SIZE, SIZE, false); }
 
 color game_cell_current_color(cgame g, uint x, uint y) {
   error(g == NULL, "g is not a valid pointer");
