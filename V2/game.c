@@ -67,11 +67,7 @@ static bool full_grid(cgame g) {
 bool game_is_over(cgame g) {
   error(g == NULL, "g is not a valid pointer");
 
-  if (g->moves_cur <= g->moves_max && full_grid(g)) {
-    return true;
-  }
-
-  return false;
+  return g->moves_cur <= g->moves_max && full_grid(g);
 }
 
 game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,
