@@ -241,71 +241,20 @@ game game_new_empty_ext(uint width, uint height, bool wrapping) {
 /* ************* Author : Farouk *********** */
 
 game game_new(color *cells, uint nb_moves_max) {
-  game g = malloc(sizeof(struct game_s));
-  
-  error(g == NULL, "g allocation went wrong");
-
-  error(nb_moves_max == 0, "nb_max_move can't be 0");
-
-  g->size_x = SIZE;
-  g->size_y = SIZE;
-  g->moves_max = nb_moves_max;
-  g->moves_cur = 0;
-
-  g->tab_init = malloc(g->size_x * g->size_y * sizeof(color));
-  
-  error(g->tab_init == NULL, "g->tab_init allocation went wrong");
-
-  for (int i = 0; i < g->size_x * g->size_y; i++)
-    g->tab_init[i] = cells[i];
-
-  g->tab_cur = malloc(g->size_x * g->size_y * sizeof(color));
-  
-  error(g->tab_cur == NULL, "g->tab_cur allocation went wrong");
-
-  for (int i = 0; i < g->size_x * g->size_y; i++)
-    g->tab_cur[i] = cells[i];
-
-  g->wrap = false;
-
-  return g;
+  return game_new_ext(SIZE, SIZE, cells, nb_moves_max, false);
 }
 
 game game_new_empty() {
-  game g = malloc(sizeof(struct game_s));
-  
-  error(g == NULL, "g allocation went wrong");
-
-  g->size_x = SIZE;
-  g->size_y = SIZE;
-  g->moves_max = 0;
-  g->moves_cur = 0;
-
-  g->tab_init = calloc(g->size_x * g->size_y, sizeof(color));
-  
-  error(g->tab_init == NULL, "g->tab_init allocation went wrong");
-
-  g->tab_cur = calloc(g->size_x * g->size_y, sizeof(color));
-  
-  error(g->tab_cur == NULL, "g->tab_cur allocation went wrong");
-
-  g->wrap = false;
-
-  return g;
+  return game_new_empty_ext(SIZE, SIZE, false);
 }
 
 color game_cell_current_color(cgame g, uint x, uint y) {
-  
   error(g == NULL, "g is not a valid pointer");
-  
   error(x >= g->size_x || y >= g->size_y, "x or y is higher than it should be");
-
   return g->tab_cur[g->size_x * y + x];
 }
 
 bool game_is_wrapping(cgame g) {
-
   error(g == NULL, "g allocation went wrong");
-
   return g->wrap;
 }

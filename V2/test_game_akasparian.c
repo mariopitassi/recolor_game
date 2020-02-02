@@ -77,7 +77,7 @@ bool test_game_is_over(color *tab) {
 
   // plays until the end and wins
   color moves[] = {3, 1, 3, 1, 0, 3, 1, 0, 1, 3, 2, 0};
-  for (int i = 0; i < 12; i++) {
+  for (int i = 0; i < 11; i++) {
     game_play_one_move(g, moves[i]);
     if (game_is_over(g)) {
       return error("game over while the grid is not finished", g);
