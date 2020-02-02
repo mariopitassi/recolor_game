@@ -17,16 +17,14 @@ static void error(bool cond, char *err_mess) {
 /**
  * @brief Read one line
  *
- * @param f
+ * @param f pointer to a FILE
  * @param size
  * @return char*
  */
 static char *read_one_line(FILE *f, long *size) {
   char *s = malloc(MAXLINELEN * sizeof(char));
-  if (s == NULL) {
-    fprintf(stderr, "Error: string allocation pb\n");
-    exit(EXIT_FAILURE);
-  }
+  error(s == NULL, "Memory allocation error");
+
   long old_pos = ftell(f);
   long len = 0;
   if (fgets(s, MAXLINELEN, f) != NULL) {
@@ -57,9 +55,8 @@ static char *read_one_line(FILE *f, long *size) {
  */
 static color *convert_line(char *line, long *size) {
   color *tab = malloc((*size) * sizeof(color));
-  if (tab == NULL) {
-    exit(EXIT_FAILURE);
-  }
+  error(tab == NULL, "Pointer exception");
+
   long tab_s = 0;
   char *token = strtok(line, " ");
   while (token != NULL) {
@@ -81,23 +78,18 @@ static color *convert_line(char *line, long *size) {
 /**
  * @brief extract the color tab from the file
  *
- * @param fname
- * @param width
- * @param height
+ * @param fname filename
+ * @param width of the grid game
+ * @param height of the grid game
  * @param psize
  * @return color* array of colors for the game to load
  */
 static color *read_tab(char *fname, int width, int height, long *psize) {
   FILE *f = fopen(fname, "r");
-  if (f == NULL) {
-    fprintf(stderr, "Error: problem opening file");
-    exit(EXIT_FAILURE);
-  }
+  error(f == NULL, "Problem opening file");
 
   color *tab = (color *)malloc(width * height * sizeof(color));
-  if (tab == NULL) {
-    exit(EXIT_FAILURE);
-  }
+  error(tab == NULL, "Pointer exception");
 
   // jump the first line
   char *line = read_one_line(f, psize);
@@ -119,17 +111,14 @@ static color *read_tab(char *fname, int width, int height, long *psize) {
 /**
  * @brief extract data from the first line of the file
  *
- * @param fname
+ * @param fname filename
  * @param psize
  * @return int* int* array with the basic info for the game
  *          (width, height, max_moves, swap)
  */
 static int *read_infos(char *fname, long *psize) {
   FILE *f = fopen(fname, "r");
-  if (f == NULL) {
-    fprintf(stderr, "Error: problem opening file");
-    exit(EXIT_FAILURE);
-  }
+  error(f == NULL, "Problem opening file");
 
   char *line = read_one_line(f, psize);
 
@@ -139,9 +128,8 @@ static int *read_infos(char *fname, long *psize) {
   // mais c'est pas très flexible du coup
 
   int *tab = (int *)malloc(4 * sizeof(int)); // pr stocker les infos
-  if (tab == NULL) {
-    exit(EXIT_FAILURE);
-  }
+  error(tab == NULL, "Pointer exception");
+
   char *token = strtok(line, " ");
   for (int i = 0; i < 3; i++) {
     char *endval = token;
@@ -157,12 +145,7 @@ static int *read_infos(char *fname, long *psize) {
     token = strtok(NULL, " ");
   }
 
-  int swap;
-  if ((*token) == 'N') {
-    swap = 0;
-  } else {
-    swap = 1;
-  }
+  int swap = (*token == 'N') ? 0 : 1;
   tab[3] = (int)swap;
 
   free(line);
@@ -181,10 +164,7 @@ static int *read_infos(char *fname, long *psize) {
 game game_load(char *filename) {
 
   FILE *f = fopen(filename, "r");
-  if (f == NULL) {
-    fprintf(stderr, "Bad pointer");
-    exit(EXIT_FAILURE);
-  }
+  error(f == NULL, "Bad pointer");
   fclose(f);
 
   /* lire 1ere ligne puis utiliser taille
@@ -215,7 +195,6 @@ game game_load(char *filename) {
 
 /**
  * @brief Save a game in a file
- *  NB : THE FORMAT WILL BE SPECIFIED LATER
  * @param g game to save
  * @param filename output file
  **/
@@ -225,11 +204,7 @@ void game_save(cgame g, char *filename) {
   FILE *f = fopen(filename, "w");
   error(f == NULL, "Allocation pb\n");
 
-  char wrap;
-  if (game_is_wrapping(g))
-    wrap = 'S';
-  else
-    wrap = 'N';
+  char wrap = game_is_wrapping(g) ? 'S' : 'N';
 
   fprintf(f, "%u %u %u %c\n", game_width(g), game_height(g),
           game_nb_moves_max(g), wrap);
