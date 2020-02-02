@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "game.h"
+#include "game_io.h"
 
 /**
  * @brief prints an error message and frees the space

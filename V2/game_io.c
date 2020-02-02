@@ -6,6 +6,15 @@
 
 #define MAXLINELEN 4096
 
+
+/* ************* Error handler *********** */
+static void error(bool cond, char *err_mess) {
+  if(cond) {
+    fprintf(stderr, "Error: %s \n\n", err_mess);
+    exit(EXIT_FAILURE);
+  }
+}
+
 /**
  * @brief Read one line
  * 
@@ -217,5 +226,25 @@ game game_load(char *filename) {
  * @param g game to save
  * @param filename output file
  **/
-void game_save(cgame g, char *filename) {}
+void game_save(cgame g, char *filename) {
+  error(g == NULL || filename == NULL, "Bad pointer\n");
 
+  FILE* f = fopen(filename, "w");
+  error(f == NULL, "Allocation pb\n");
+
+  char wrap;
+  if (game_is_wrapping(g)) wrap = 'S';
+  else wrap = 'N';
+
+  fprintf(f, "%u %u %u %c\n", game_width(g), game_height(g), game_nb_moves_max(g), wrap);
+
+  for (uint y = 0; y < game_height(g); y++){
+    for (uint x = 0; x < game_width(g); x++){
+      if (x == 0) fprintf(f, "%u",game_cell_current_color(g, x, y));
+      else fprintf(f, " %u",game_cell_current_color(g, x, y));
+    }
+    fprintf(f, "\n");
+  }
+
+  fclose(f);
+}
