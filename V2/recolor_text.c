@@ -14,16 +14,10 @@ void grid_display(game g);
 void play_game(game g);
 
 int main(int argc, char* argv[]) {
+  game g;
 
   if(argc == 1) {
-    fprintf(stderr, "Usage : ./recolor_text <filename>\n");
-    exit(EXIT_FAILURE);
-  }
-
-  game g = game_load(argv[1]);
-
-  /** Initializing the game grid
-  color tab[] = {0, 0, 0, 2, 0, 2, 1, 0, 1, 0, 3, 0, 0, 3, 3, 1, 1, 1, 1, 3, 2,
+    color tab[] = {0, 0, 0, 2, 0, 2, 1, 0, 1, 0, 3, 0, 0, 3, 3, 1, 1, 1, 1, 3, 2,
                  0, 1, 0, 1, 0, 1, 2, 3, 2, 3, 2, 0, 3, 3, 2, 2, 3, 1, 0, 3, 2,
                  1, 1, 1, 2, 2, 0, 2, 1, 2, 3, 3, 3, 3, 2, 0, 1, 0, 0, 0, 3, 3,
                  0, 1, 1, 2, 3, 3, 2, 1, 3, 1, 1, 2, 2, 2, 0, 0, 1, 3, 1, 1, 2,
@@ -31,8 +25,9 @@ int main(int argc, char* argv[]) {
                  1, 3, 0, 1, 3, 1, 0, 0, 0, 3, 2, 3, 1, 0, 0, 1, 3, 3, 1, 1, 2,
                  2, 3, 2, 0, 0, 2, 2, 0, 2, 3, 0, 1, 1, 1, 2, 3, 0, 1};
 
-  // Initializing a game with the grid above and 12 max moves
-  game g = game_new(tab, 12);**/
+    g = game_new(tab, 12);
+  }
+  else g = game_load(argv[1]);
 
   // Starting the game
   play_game(g);
