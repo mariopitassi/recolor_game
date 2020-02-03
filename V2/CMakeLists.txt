@@ -18,6 +18,8 @@ target_link_libraries(test_game_mpitassi game)
 target_link_libraries(test_game_akasparian game)
 target_link_libraries(test_game_mrousseau006 game)
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 include(CTest)
 enable_testing()
 set(cmds "test_game_fakhoun" "test_game_fakhoun" "test_game_fakhoun" "test_game_fakhoun" "test_game_mpitassi" "test_game_mpitassi" "test_game_mpitassi" "test_game_mpitassi" "test_game_mpitassi" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_mrousseau006" "test_game_mrousseau006" "test_game_mrousseau006" "test_game_mrousseau006")
