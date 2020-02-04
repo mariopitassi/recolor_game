@@ -2,7 +2,7 @@ recolor_text
 libgame.a
 *.o
 .vscode
-V1/build/
-V2/build/
+build/
 Makefile
 .DS_Store
+__MAC_OSX
