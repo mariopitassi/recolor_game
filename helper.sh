@@ -46,7 +46,7 @@ else
     then
         if [ "$2" = "v1" ] || [ "$2" = "V1" ]; then 
             git checkout v1
-        elif [ "$2" = "v2" ] || [ "$2" = "v2" ]; then
+        elif [ "$2" = "v2" ] || [ "$2" = "V2" ]; then
             git checkout master
         else
             echo "Usage : ./helper.sh switch <v1|v2>"
