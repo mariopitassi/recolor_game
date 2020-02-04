@@ -1,6 +1,0 @@
-recolor_text
-libgame.a
-*.o
-.vscode
-build/*
-Makefile
