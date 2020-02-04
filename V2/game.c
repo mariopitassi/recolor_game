@@ -5,13 +5,13 @@
 #include <string.h>
 
 typedef struct game_s {
-  color *tab_init;
-  color *tab_cur;
-  uint size_x;
-  uint size_y;
-  uint moves_max;
-  uint moves_cur;
-  bool wrap;
+  color *tab_init; // One-dimensional tab (immutable)
+  color *tab_cur;  // One-dimensional tab (mutable)
+  uint size_x;     // Grid width
+  uint size_y;     // Grid height
+  uint moves_max;  // Max move to play
+  uint moves_cur;  // Current nb of move
+  bool wrap;       // Game is wrapping ?
 } * game;
 
 /* ************* Error handler *********** */
@@ -80,6 +80,7 @@ game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,
 
   g->size_x = width;
   g->size_y = height;
+  g->wrap = wrapping;
   g->moves_max = nb_moves_max;
   g->moves_cur = 0;
 
@@ -99,8 +100,6 @@ game game_new_ext(uint width, uint height, color *cells, uint nb_moves_max,
     g->tab_cur[i] = cells[i];
   }
 
-  g->wrap = wrapping;
-
   return g;
 }
 
@@ -118,20 +117,16 @@ void game_set_cell_init(game g, uint x, uint y, color c) {
 
 void game_set_max_moves(game g, uint nb_max_moves) {
   error(g == NULL, "g is not a valid pointer");
-
   g->moves_max = nb_max_moves;
 }
 
 uint game_height(cgame g) {
-
   error(g == NULL, "g allocation went wrong");
-
   return g->size_y;
 }
 
 uint game_width(cgame game) {
   error(game == NULL, "g allocation went wrong");
-
   return game->size_x;
 }
 
@@ -190,18 +185,15 @@ void game_restart(game g) {
 
   error(g == NULL, "g is not a valid pointer");
 
-  for (int i = 0; i < g->size_x * g->size_y; i++) {
-    g->tab_cur[i] = g->tab_init[i];
-  }
+  for (int i = 0; i < g->size_x * g->size_y; i++)
+    g->tab_cur[i] = g->tab_init[i]; // Each cell transforms to initial state
 
   g->moves_cur = 0;
 }
 
 uint game_nb_moves_max(cgame g) {
   error(g == NULL, "g is not a valid pointer");
-
-  uint nb_moves_max = g->moves_max;
-  return nb_moves_max;
+  return g->moves_max;
 }
 
 void game_delete(game g) {
@@ -219,6 +211,7 @@ game game_new_empty_ext(uint width, uint height, bool wrapping) {
 
   g->size_x = width;
   g->size_y = height;
+  g->wrap = wrapping;
   g->moves_max = 0;
   g->moves_cur = 0;
 
@@ -229,8 +222,6 @@ game game_new_empty_ext(uint width, uint height, bool wrapping) {
   g->tab_cur = calloc(g->size_x * g->size_y, sizeof(color));
 
   error(g->tab_cur == NULL, "g->tab_cur allocation went wrong");
-
-  g->wrap = wrapping;
 
   return g;
 }

@@ -16,21 +16,8 @@ void play_game(game g);
 int main(int argc, char *argv[]) {
   game g;
 
-  if (argc == 1) {
-    /**
-color tab[] = {
-    0, 0, 0, 2, 0, 2, 1, 0, 1, 0, 3, 0, 0, 3, 3, 1, 1, 1, 1, 3, 2, 0, 1, 0,
-    1, 0, 1, 2, 3, 2, 3, 2, 0, 3, 3, 2, 2, 3, 1, 0, 3, 2, 1, 1, 1, 2, 2, 0,
-    2, 1, 2, 3, 3, 3, 3, 2, 0, 1, 0, 0, 0, 3, 3, 0, 1, 1, 2, 3, 3, 2, 1, 3,
-    1, 1, 2, 2, 2, 0, 0, 1, 3, 1, 1, 2, 1, 3, 1, 3, 1, 0, 1, 0, 1, 3, 3, 3,
-    0, 3, 0, 1, 0, 0, 2, 1, 1, 1, 3, 0, 1, 3, 1, 0, 0, 0, 3, 2, 3, 1, 0, 0,
-    1, 3, 3, 1, 1, 2, 2, 3, 2, 0, 0, 2, 2, 0, 2, 3, 0, 1, 1, 1, 2, 3, 0, 1};
-
-g = game_new(tab, 12);
-    **/
-    g = game_load("data/default_game.rec");
-  } else
-    g = game_load(argv[1]);
+  // Load the default game or a selected game in ./data
+  g = (argc == 1) ? game_load("data/default_game.rec") : game_load(argv[1]);
 
   // Starting the game
   play_game(g);

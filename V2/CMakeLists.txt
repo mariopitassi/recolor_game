@@ -27,6 +27,6 @@ set(args "game_nb_moves_max" "game_set_cell_init" "game_cell_current_color" "gam
 foreach(i RANGE 16)
     list(GET cmds ${i} cmd)
     list(GET args ${i} arg)
-    add_test(recolor-${arg} ./${cmd} ${arg})
-    set_tests_properties(recolor-${arg} PROPERTIES PASS_REGULAR_EXPRESSION "SUCCESS" TIMEOUT 3)
+    add_test(test_${arg} ./${cmd} ${arg})
+    set_tests_properties(test_${arg} PROPERTIES PASS_REGULAR_EXPRESSION "SUCCESS" TIMEOUT 3)
 endforeach()
