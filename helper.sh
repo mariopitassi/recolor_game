@@ -8,6 +8,7 @@ if [ $# = 0 ]; then
     echo "$(tput bold) clear$(tput sgr0) - Clean the projet (del: /build)"
     echo "$(tput bold) coverage$(tput sgr0) - Run coverage test"
     echo "$(tput bold) switch$(tput sgr0) <V1|V2> - Change version of the project"
+    echo "$(tput bold) leak$(tput sgr0)- Check leak on recolor_text, recolor_solver and test"
 else
     if [ "$1" = "build" ]
     then
