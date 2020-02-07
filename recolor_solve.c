@@ -1,6 +1,6 @@
 #include "game.h"
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /**
@@ -30,20 +30,24 @@ static void raise_usage(int code) {
 
 int main(int argc, char *argv[]) {
 
-    if (argc == 1) raise_usage(0);
+  if (argc == 1)
+    raise_usage(0);
 
-    if(strcmp(argv[1], "FIND_ONE") == 0) {
+  if (strcmp(argv[1], "FIND_ONE") == 0) {
 
-        if(argc != 3) raise_usage(1);
+    if (argc != 3)
+      raise_usage(1);
 
-    }else if(strcmp(argv[1], "NB_SOL") == 0) {
+  } else if (strcmp(argv[1], "NB_SOL") == 0) {
 
-        if(argc != 3) raise_usage(2);
+    if (argc != 3)
+      raise_usage(2);
 
-    }else if(strcmp(argv[1], "FIN_MIN") == 0) {
+  } else if (strcmp(argv[1], "FIN_MIN") == 0) {
 
-        if(argc != 3) raise_usage(3);
+    if (argc != 3)
+      raise_usage(3);
 
-    }else raise_usage(0);
-
+  } else
+    raise_usage(0);
 }
