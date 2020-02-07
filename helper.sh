@@ -2,13 +2,13 @@
 
 if [ $# = 0 ]; then 
     echo "$(tput setaf 3)Usage : helper.sh <command>"
-    echo "$(tput setaf 7)where command is one of build, test, clear, coverage, memcheck and switch\n"
+    echo "$(tput setaf 7)where command is one of build, test, clear, coverage, memcheck and switch\n$(tput sgr0) "
     echo "$(tput bold)build$(tput sgr0) - Create a build dir and copy executables in run dir"
     echo "$(tput bold)test$(tput sgr0)  - Run all the test of the program"
     echo "$(tput bold)clear$(tput sgr0) - Clean the projet (del: /build)"
     echo "$(tput bold)coverage$(tput sgr0) - Run coverage test"
     echo "$(tput bold)switch$(tput sgr0) <V1|V2> - Change version of the project"
-    echo "$(tput bold)memcheck$(tput sgr0) - Check leak on recolor_text, recolor_solver and test"
+    echo "$(tput bold)memcheck$(tput sgr0) - Do a complete memory check"
 else
     if [ "$1" = "build" ]
     then
@@ -60,13 +60,13 @@ else
 
         (cd build && make ExperimentalMemCheck)
 
-        echo "\n$(tput bold)$(tput setaf 3)Rentrer une valeur pour faire un memcheck de recolor_text défaut"
-        read f
+        echo "$(tput bold)$(tput setaf 3)Press ENTER to make a memcheck of 'recolor_text' (arg by default)$(tput sgr0)"
+        read io
 
         (cd build && valgrind --leak-check=full -v ./recolor_text)
 
-        echo "\n$(tput bold)$(tput setaf 3)Rentrer une valeur pour faire un memcheck de recolor_text horizontal_game_DS.rec"
-        read f
+        echo "$(tput bold)$(tput setaf 3)Press ENTER to make a memcheck of 'recolor_text horizontal2S_game.rec'$(tput sgr0)"
+        read io
 
         (cd build && valgrind --leak-check=full -v ./recolor_text data/horizontal_game2S.rec)
 
