@@ -4,6 +4,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+/**
+ * @brief Test a condition
+ * @param cond The condition to be tested
+ * @param err_msg The message to be displayed if condition true
+ * @param g The game to be deleted if condition true
+ * @return true if condition true
+ * @return false if condition false
+ */
+static bool test(bool cond, char *err_msg, game g) {
+  if (cond) {
+    fprintf(stderr, err_msg);
+    game_delete(g);
+  }
+  return cond;
+}
 
 /* ********** TAB TEST INITIALIZATION ********** */
 
@@ -21,23 +36,15 @@ bool test_game_nb_moves_max() {
   uint moves_max = 69;
 
   game g = game_new(tab, moves_max);
-
-  if (game_nb_moves_max(g) != moves_max) {
-    fprintf(stderr, "Error: invalid game nb moves max (game_new)!\n");
-    game_delete(g);
+  if (test(game_nb_moves_max(g) != moves_max,
+           "Error: invalid game nb moves max (game_new)!\n", g))
     return false;
-  }
+  game_delete(g);
 
   game g2 = game_new_empty();
-
-  if (game_nb_moves_max(g2) != 0) {
-    fprintf(stderr, "Error: invalid game nb moves max (game_new_empty)!\n");
-    game_delete(g);
-    game_delete(g2);
+  if (test(game_nb_moves_max(g2) != 0,
+           "Error: invalid game nb moves max (game_new_empty)!\n", g2))
     return false;
-  }
-
-  game_delete(g);
   game_delete(g2);
 
   return true;
@@ -54,11 +61,9 @@ bool test_game_set_cell_init() {
     for (uint x = 0; x < game_width(g); x++) {
       color c = tab[game_width(g) * y + x];
       game_set_cell_init(g, x, y, c);
-      if (game_cell_current_color(g, x, y) != c) {
-        fprintf(stderr, "Error: invalid current cell color!\n");
-        game_delete(g);
+      if (test(game_cell_current_color(g, x, y) != c,
+               "Error: invalid current cell color!\n", g))
         return false;
-      }
     }
   }
 
@@ -67,11 +72,9 @@ bool test_game_set_cell_init() {
   // After restart, check if values match (if not : error)
   for (uint y = 0; y < game_height(g); y++) {
     for (uint x = 0; x < game_width(g); x++) {
-      if (game_cell_current_color(g, x, y) != tab[game_width(g) * y + x]) {
-        fprintf(stderr, "Error: invalid init cell color!\n");
-        game_delete(g);
+      if (test(game_cell_current_color(g, x, y) != tab[game_width(g) * y + x],
+               "Error: invalid init cell color!\n", g))
         return false;
-      }
     }
   }
 
@@ -87,29 +90,23 @@ bool test_game_cell_current_color() {
   // Check if every cells of g match tab (if not : error)
   for (uint y = 0; y < game_height(g); y++) {
     for (uint x = 0; x < game_width(g); x++) {
-      if (game_cell_current_color(g, x, y) != tab[game_width(g) * y + x]) {
-        fprintf(stderr, "Error: invalid cell color! (game_new) \n");
-        game_delete(g);
+      if (test(game_cell_current_color(g, x, y) != tab[game_width(g) * y + x],
+               "Error: invalid cell color! (game_new) \n", g))
         return false;
-      }
     }
   }
+  game_delete(g);
 
   game g2 = game_new_empty();
 
   // Check if every cells of g2 match 0 (if not : error)
   for (uint y = 0; y < game_height(g2); y++) {
     for (uint x = 0; x < game_width(g2); x++) {
-      if (game_cell_current_color(g2, x, y) != 0) {
-        fprintf(stderr, "Error: invalid cell color! (game_new_empty)\n");
-        game_delete(g);
-        game_delete(g2);
+      if (test(game_cell_current_color(g2, x, y) != 0,
+               "Error: invalid cell color! (game_new_empty)\n", g2))
         return false;
-      }
     }
   }
-
-  game_delete(g);
   game_delete(g2);
   return true;
 }
@@ -117,7 +114,6 @@ bool test_game_cell_current_color() {
 /* ********** GAME_IS_WRAPPING TEST ********** */
 
 bool test_game_is_wrapping() {
-
   // Initialize an array which allows us to check if the game is truly wrapping
   // Allows us to check if game_play_one_move works as well
   color wrap_tab_test[] = {0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1,
@@ -126,45 +122,29 @@ bool test_game_is_wrapping() {
   game g = game_new_ext(5, 6, wrap_tab_test, 5, true);
 
   // Check if game_is_wrapping returns the correct value (if not : error)
-  if (!game_is_wrapping(g)) {
-    fprintf(stderr,
-            "Error : unvalid wrapping value g (false instead of true)\n");
-    game_delete(g);
+  if (test(!game_is_wrapping(g),
+           "Error : unvalid wrapping value g (false instead of true)\n", g))
     return false;
-  }
 
   game_play_one_move(g, 1);
 
   // Check if the game is truly wrapping (game_play_one_move is working)
   // (if not : error)
-  if (!game_is_over(g)) {
-    fprintf(stderr, "Error : game_play_one_move is not wrapping g");
-    game_delete(g);
+  if (test(!game_is_over(g), "Error : game_play_one_move is not wrapping g", g))
     return false;
-  }
-
-  game g2 = game_new_ext(5, 6, wrap_tab_test, 5, false);
-
-  if (game_is_wrapping(g2)) {
-    fprintf(stderr,
-            "Error : unvalid wrapping value g2 (true instead of false)\n");
-    game_delete(g);
-    game_delete(g2);
-    return false;
-  }
-
-  game_play_one_move(g2, 1);
-
-  if (game_is_over(g2)) {
-    fprintf(stderr, "Error : game_play_one_move is wrapping g2");
-    game_delete(g);
-    game_delete(g2);
-    return false;
-  }
 
   game_delete(g);
-  game_delete(g2);
 
+  game g2 = game_new_ext(5, 6, wrap_tab_test, 5, false);
+  if (test(game_is_wrapping(g2),
+           "Error : unvalid wrapping value g2 (true instead of false)\n", g2))
+    return false;
+
+  game_play_one_move(g2, 1);
+  if (test(game_is_over(g2), "Error : game_play_one_move is wrapping g2", g2))
+    return false;
+
+  game_delete(g2);
   return true;
 }
 
