@@ -14,7 +14,7 @@
  */
 static bool test(bool cond, char *err_msg, game g) {
   if (cond) {
-    fprintf(stderr, err_msg);
+    fprintf(stderr, "%s", err_msg);
     game_delete(g);
   }
   return cond;
