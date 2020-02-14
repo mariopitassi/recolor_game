@@ -58,7 +58,7 @@ else
             ./helper.sh build
         fi
 
-        echo "$(tput bold)$(tput setaf 3)\nPress ENTER to run an ExperimentalMemCheck$(tput sgr0)"
+        echo "$(tput bold)$(tput setaf 3)Press ENTER to run an ExperimentalMemCheck$(tput sgr0)"
         read io 
 
         (cd build && make ExperimentalMemCheck)
@@ -66,12 +66,12 @@ else
         echo "$(tput bold)$(tput setaf 3)Press ENTER to make a memcheck of 'recolor_text' (arg by default)$(tput sgr0)"
         read io
 
-        (cd build && valgrind --leak-check=full -v ./recolor_text 313103101320)
+        (cd build && valgrind --leak-check=full echo $(cat "data/default_game.sol") | ./recolor_text)
 
         echo "$(tput bold)$(tput setaf 3)Press ENTER to make a memcheck of 'recolor_text horizontal2S_game.rec'$(tput sgr0)"
         read io
 
-        (cd build && valgrind --leak-check=full -v ./recolor_text data/horizontal_game2S.rec 192983651012735182946720)
+        (cd build && valgrind --leak-check=full echo $(cat "data/horitzontal_game2S.sol") | ./recolor_text data/horizontal_game2S.rec)
 
     else
         ./helper.sh
