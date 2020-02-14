@@ -71,7 +71,7 @@ else
         echo "$(tput bold)$(tput setaf 3)Press ENTER to make a memcheck of 'recolor_text horizontal2S_game.rec'$(tput sgr0)"
         read io
 
-        (cd build && valgrind --leak-check=full -v ./recolor_text data/horizontal_game2S.rec)
+        (cd build && valgrind --leak-check=full -v ./recolor_text data/horizontal_game2S.rec 192983651012735182946720)
 
     else
         ./helper.sh
