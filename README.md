@@ -1,6 +1,6 @@
 # Recolor game projet
 
-*This project is maintained by Anouche AKASPARIAN, Mattias ROUSSEAU, Farouk FAKHOUN and Mario PITASSI.* 
+*This project is maintained by Anouche KASPARIAN, Mattias ROUSSEAU, Farouk FAKHOUN and Mario PITASSI.* 
 
 ## Installation & usage 
 
@@ -21,7 +21,7 @@ There are 6 use cases :
 - `test` : run all project tests using ctest
 - `coverage` : check coverage of code using CMake
 - `switch` : switch between V1 and V2 of recolor using git branch
-- `memcheck` : check memory leak on executable
+- `memcheck` : check memory leak on executables
 
 ## Architecture
 
