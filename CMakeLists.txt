@@ -6,15 +6,17 @@ set(CMAKE_C_FLAGS "-std=c99 -g -Wall --coverage")
 
 add_executable(recolor_text recolor_text.c)
 add_executable(recolor_solve recolor_solve.c)
+add_executable(solver_fakhoun solver_fakhoun.c)
 add_executable(test_game_fakhoun test_game_fakhoun.c)
 add_executable(test_game_mpitassi test_game_mpitassi.c)
 add_executable(test_game_akasparian test_game_akasparian.c)
 add_executable(test_game_mrousseau006 test_game_mrousseau006.c)
 
-add_library(game game_io.c game.c)
+add_library(game game_io.c game.c ListLib/asde_slist.c ListLib/asde_slist_utilitary_functions.c)
 
 target_link_libraries(recolor_text game)
 target_link_libraries(recolor_solve game)
+target_link_libraries(solver_fakhoun game)
 target_link_libraries(test_game_fakhoun game)
 target_link_libraries(test_game_mpitassi game)
 target_link_libraries(test_game_akasparian game)
