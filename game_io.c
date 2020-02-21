@@ -27,7 +27,7 @@ static char *read_one_line(FILE *f, long *size) {
 
   long old_pos = ftell(f);
   if (fgets(s, MAXLINELEN, f) != NULL) {
-    long len = 0
+    long len = 0;
     len = ftell(f) - old_pos;
     if (s[len - 1] == '\n') {
       s[len - 1] = '\0';
