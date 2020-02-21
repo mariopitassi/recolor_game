@@ -26,8 +26,8 @@ static char *read_one_line(FILE *f, long *size) {
   error(s == NULL, "Memory allocation error");
 
   long old_pos = ftell(f);
-  long len = 0;
   if (fgets(s, MAXLINELEN, f) != NULL) {
+    long len = 0
     len = ftell(f) - old_pos;
     if (s[len - 1] == '\n') {
       s[len - 1] = '\0';
@@ -140,6 +140,7 @@ static int *read_infos(char *fname, long *psize) {
     } else {
       free(tab);
       free(line);
+      fclose(f);
       return NULL;
     }
     token = strtok(NULL, " ");
