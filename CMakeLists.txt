@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.6)
 project (recolor C)
 
 set(CMAKE_C_FLAGS "-std=c99 -g -Wall --coverage")
+set(CMAKE_C_FLAGS_DEBUG "-g -DDEBUG --coverage")
+set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 add_executable(recolor_text recolor_text.c)
 add_executable(recolor_solve recolor_solve.c)
