@@ -16,7 +16,7 @@ typedef struct solution {
 void print(color *moves_arr, uint size) {
   printf("\n");
   for (int i = 0; i < size; i++) {
-    printf("%d", (moves_arr[i]));
+    printf("%u", (moves_arr[i]));
   }
 }
 
@@ -210,7 +210,7 @@ void find_one_itr(game g, color *moves_arr, uint size_moves_arr, color *c_arr, u
     if (is_solution(g, moves_arr, size_moves_arr)) { // à mettre dans un fichier .sol au lieu d'afficher
       printf("\n\nSOLUTION FOUND\n\n");
       for (int i = 0; i < size_moves_arr; i++) {
-        printf("%d ", moves_arr[i]);
+        printf("%u ", moves_arr[i]);
       }
       printf("\n\n");
       break;
@@ -234,7 +234,7 @@ void find_one_itr(game g, color *moves_arr, uint size_moves_arr, color *c_arr, u
   if (is_solution(g, moves_arr, size_moves_arr)) { // Duplication mais essentiel si la dernière séquence est la bonne
       printf("\n\nSOLUTION FOUND\n\n");
       for (int i = 0; i < size_moves_arr; i++) {
-        printf("%d ", moves_arr[i]);
+        printf("%u ", moves_arr[i]);
       }
       printf("\n\n");
     }
