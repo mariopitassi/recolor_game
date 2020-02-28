@@ -8,9 +8,23 @@
 #include <string.h>
 
 typedef struct solution {
-  color *sol_arr;
-  int nb_moves;
+  color *moves;
+  uint nb_moves;
 } * sol;
+
+static void error(bool cond, char *err_mess) {
+  if (cond) {
+    fprintf(stderr, "Error: %s \n\n", err_mess);
+    exit(EXIT_FAILURE);
+  }
+}
+
+sol sol_alloc() {
+  sol s = malloc(sizeof(struct solution));
+  error(s == NULL, "Allocation went wrong\n");
+  s->nb_moves = 0;
+  return s;
+}
 
 void print(color *moves_arr, uint size) {
   // printf("\n");
@@ -22,6 +36,7 @@ void print(color *moves_arr, uint size) {
 
 // Joue plusieurs coups
 void game_play_moves(game g, color *moves, uint nb_moves) {
+  error(moves == NULL, "Unvalid pointer\n");
   for (uint i = 0; i < nb_moves; i++) {
     game_play_one_move(g, moves[i]);
   }
@@ -29,19 +44,21 @@ void game_play_moves(game g, color *moves, uint nb_moves) {
 
 // Copie un tableau, je pense que ça peut etre utile lorsque l'on stockera notre
 // tableau dans la structure solution
-color *copy_arr(color *arr, uint nb_moves) {
-  color *copy_arr = malloc(nb_moves * sizeof(color));
-  for (int i = 0; i < nb_moves; i++) {
+color *copy_arr(color *arr, uint len) {
+  error(arr == NULL, "Unvalid pointer\n");
+  color *copy_arr = malloc(len * sizeof(color));
+  for (int i = 0; i < len; i++) {
     copy_arr[i] = arr[i];
   }
   return copy_arr;
 }
 
 // Determine si le tableau passé en paramètre est une solution ou pas
-bool is_solution(cgame g, color *moves_arr, uint nb_moves) {
+bool is_solution(cgame g, color *moves, uint nb_moves) {
+  error(moves == NULL, "Unvalid pointer\n");
   game g2 = game_copy(g);
   for (int i = 0; i < nb_moves; i++) {
-    game_play_one_move(g2, moves_arr[i]);
+    game_play_one_move(g2, moves[i]);
     if (game_is_over(g2)) {
       game_delete(g2);
       return true;
@@ -54,6 +71,7 @@ bool is_solution(cgame g, color *moves_arr, uint nb_moves) {
 // Retourne le nb de couleurs du jeu après avoir joué les couleurs du tableaux
 // "moves" de "moves[0] à moves[nb_moves-1]"
 uint nb_colors(cgame g, color *moves, uint nb_moves) {
+  error(moves == NULL, "Unvalid pointer\n");
   game g2 = game_copy(g);
   game_play_moves(g2, moves, nb_moves);
 
@@ -115,6 +133,7 @@ void around(game g, uint x, uint y, color oldcolor, SList color_around) {
 // tableaux "moves" de "moves[0] à moves[nb_moves-1]"
 // Dernière optimisation que je vois est : trier cette liste
 SList col_around(cgame g, color *moves, uint nb_moves) {
+  error(moves == NULL, "Unvalid pointer\n");
   game g2 = game_copy(g);
   game_play_moves(g2, moves, nb_moves);
 
@@ -133,23 +152,20 @@ SList col_around(cgame g, color *moves, uint nb_moves) {
 // Affiche toutes les solutions possibles du jeu "g" sur "nb_moves" coups
 // Cette fonctions marche pour "game_default" et "game_horizontal_2S" mais pas
 // avec "2N"
-void nb_sol_rec(cgame g, color *moves, SList c_around, uint nb_moves,
-                uint *nb_sol) {
-  uint moves_left = game_nb_moves_max(g) - nb_moves;
+void look_for_sol(cgame g, color *moves, SList c_around, uint nb_moves,
+                  uint nb_moves_max, uint *nb_sol, sol s, bool look_nb_sol) {
+  uint moves_left = nb_moves_max - nb_moves;
   uint nb_col = nb_colors(g, moves, nb_moves);
 
-  if (moves_left <
-      nb_col - 1) { // On arrete car inutile de jouer (sûr de perdre)
-    // print(moves, nb_moves);
-    return;
-  }
+  if (moves_left < nb_col - 1)
+    return; // On arrete car inutile de jouer (sûr de perdre)
 
-  if (nb_moves == game_nb_moves_max(g) || nb_col == 1) { // On a gagné
+  if (nb_moves == nb_moves_max || nb_col == 1) { // Solution trouvé
     *nb_sol += 1;
-    printf("SOLUTION : ");
-    print(moves, nb_moves);
-    printf("NUMBER   : %u\n", *nb_sol);
-    printf("NB COUPS : %u\n\n", nb_moves);
+    if (!look_nb_sol) {
+      s->moves = copy_arr(moves, nb_moves);
+      s->nb_moves = nb_moves;
+    }
     return;
   }
 
@@ -158,37 +174,101 @@ void nb_sol_rec(cgame g, color *moves, SList c_around, uint nb_moves,
     SList next_c_around = col_around(
         g, moves,
         nb_moves + 1); //"nb_moves+1" car on vient d'ajouter un coup à "moves"
-    nb_sol_rec(g, moves, next_c_around, nb_moves + 1, nb_sol);
+    look_for_sol(g, moves, next_c_around, nb_moves + 1, nb_moves_max, nb_sol, s,
+                 look_nb_sol);
     asde_slist_delete_list(next_c_around);
     c_around = asde_slist_next(c_around);
+    if (*nb_sol > 0 && !look_nb_sol)
+      return;
   }
 
   asde_slist_delete_list(c_around);
 }
 
+sol find_min(cgame g) {
+  sol s = sol_alloc();
+  color move_min[] = {0};
+  uint nb_moves_min = nb_colors(g, move_min, 0) - 1;
+  for (uint nb_moves = nb_moves_min; nb_moves <= game_nb_moves_max(g);
+       nb_moves++) {
+    color *moves = malloc(nb_moves * sizeof(color));
+    error(moves == NULL, "Allocation went wrong\n");
+    SList c_around = col_around(g, moves, 0);
+    uint nb_sol = 0;
+    bool look_nb_sol = false;
+    look_for_sol(g, moves, c_around, 0, nb_moves, &nb_sol, s, look_nb_sol);
+    asde_slist_delete_list(c_around);
+    free(moves);
+    if (nb_sol > 0)
+      return s;
+  }
+  return s;
+}
+
+sol find_one(cgame g) {
+  sol s = sol_alloc();
+  color *moves = malloc(game_nb_moves_max(g) * sizeof(color));
+  error(moves == NULL, "Allocation went wrong\n");
+  SList c_around = col_around(g, moves, 0);
+  uint nb_sol = 0;
+  bool look_nb_sol = false;
+  look_for_sol(g, moves, c_around, 0, game_nb_moves_max(g), &nb_sol, s,
+               look_nb_sol);
+  asde_slist_delete_list(c_around);
+  free(moves);
+  return s;
+}
+
+uint nb_sol(cgame g) {
+  sol s = NULL;
+  color *moves = malloc(game_nb_moves_max(g) * sizeof(color));
+  error(moves == NULL, "Allocation went wrong\n");
+  SList c_around = col_around(g, moves, 0);
+  uint nb_sol = 0;
+  bool look_nb_sol = true;
+  look_for_sol(g, moves, c_around, 0, game_nb_moves_max(g), &nb_sol, s,
+               look_nb_sol);
+  asde_slist_delete_list(c_around);
+  free(moves);
+  return nb_sol;
+}
+
 int main(void) {
+
   /**
-    color test_arr[] = {0, 0, 1, 4, 0,
-                        1, 0, 1, 0, 1,
-                        0, 0, 1, 0, 1,
-                        1, 0, 0, 0, 1,
-                        1, 1, 1, 1, 1,
-                        3, 2, 1, 1, 0};
+    color test_arr[] = {0, 0, 1, 4, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1,
+                        1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 0};
+
+    game g = game_new_ext(5, 6, test_arr, 12, false);
   **/
 
-  // game g = game_new_ext(5, 6, test_arr, 12, false);
   game g = game_load("data/default_game.rec");
   // game g = game_load("data/horizontal_game2S.rec");
 
-  color *moves = malloc(game_nb_moves_max(g) * sizeof(color));
-  uint nb_sol = 0;
-  SList c_around = col_around(g, moves, 0);
+  /** FIND_MIN
+  sol solution = find_min(g);
+  if(solution->nb_moves > 0){
+    print(solution->moves, solution->nb_moves);
+    free(solution->moves);
+    free(solution);
+  }else{
+    printf("NO SOLUTION\n");
+    free(solution);
+  }**/
 
-  nb_sol_rec(g, moves, c_around, 0, &nb_sol);
-  printf("\n\n NB SOL = %u\n", nb_sol);
+  /** FIND_ONE **/
+  sol solution = find_one(g);
+  if (solution->nb_moves > 0) {
+    print(solution->moves, solution->nb_moves);
+    free(solution->moves);
+    free(solution);
+  } else {
+    printf("NO SOLUTION\n");
+    free(solution);
+  }
 
-  asde_slist_delete_list(c_around);
-  free(moves);
+  /** NB_SOL
+  printf("NB_SOL = %u\n", nb_sol(g)); **/
 
   game_delete(g);
   return EXIT_SUCCESS;

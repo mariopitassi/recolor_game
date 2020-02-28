@@ -30,13 +30,13 @@ bool test_game_new() {
   game g = game_new(tab, coups_max);
 
   if (g == NULL) {
-    return error("g is not a valid pointer.",g);
+    return error("g is not a valid pointer.", g);
   }
 
   for (int i = 0; i <= SIZE - 1; i++) {
     for (int j = 0; j <= SIZE - 1; j++) {
       if (game_cell_current_color(g, j, i) != tab[SIZE * i + j]) {
-        return error("cells aren't initialized with good values from tab.",g);
+        return error("cells aren't initialized with good values from tab.", g);
       }
     }
   }
@@ -44,12 +44,12 @@ bool test_game_new() {
   for (uint i = 1; i <= SIZE; i++) {
     game g2 = game_new(tab, i);
     if (g2 == NULL) {
-      return error("g2 is not a valid pointer.",g);
+      return error("g2 is not a valid pointer.", g);
     }
 
     if (game_nb_moves_max(g2) != i) {
       game_delete(g2);
-      return error("max move not initialized.",g);
+      return error("max move not initialized.", g);
     }
 
     game_delete(g2);
@@ -58,13 +58,13 @@ bool test_game_new() {
   uint coups_test = game_nb_moves_max(g);
 
   if (coups_max != coups_test) {
-    return error("max moves aren't the same so it doesn't change.",g);
+    return error("max moves aren't the same so it doesn't change.", g);
   }
 
   uint coups_current_test = game_nb_moves_cur(g);
 
   if (coups_current_test != 0) {
-    return error("current moves aren't the same so it doesn't change.",g);
+    return error("current moves aren't the same so it doesn't change.", g);
   }
 
   game_delete(g);
@@ -78,13 +78,13 @@ bool test_set_max_moves() {
   game g = game_new(tab, coups_max);
 
   if (g == NULL) {
-    return error("g is not a valid pointer.",g);
+    return error("g is not a valid pointer.", g);
   }
 
   uint coups = 54;
 
   if (game_nb_moves_cur(g) > coups) {
-    return error("you can't put a max_move < current_move.",g);
+    return error("you can't put a max_move < current_move.", g);
   }
 
   game_set_max_moves(g, coups);
@@ -92,7 +92,7 @@ bool test_set_max_moves() {
   uint coups_test = game_nb_moves_max(g);
 
   if (coups != coups_test) {
-    return error("max moves aren't the same, it doesn't change.",g);
+    return error("max moves aren't the same, it doesn't change.", g);
   }
 
   game_delete(g);
@@ -105,7 +105,7 @@ bool test_copy() {
   game g = game_new(tab, coups_max);
 
   if (g == NULL) {
-    return error("g is not a valid pointer.",g);
+    return error("g is not a valid pointer.", g);
   }
 
   game_play_one_move(g, 1);
@@ -113,42 +113,42 @@ bool test_copy() {
   game g2 = game_copy(g);
 
   if (g2 == NULL) {
-    return error("g2 is not a valid pointer.",g);
+    return error("g2 is not a valid pointer.", g);
   }
 
   for (int i = 0; i <= SIZE - 1; i++) {
     for (int j = 0; j <= SIZE - 1; j++) {
       if (game_cell_current_color(g, j, i) !=
           game_cell_current_color(g2, j, i)) {
-            game_delete(g2);
-            return error("cells copied weren't initialized correctly.",g);
+        game_delete(g2);
+        return error("cells copied weren't initialized correctly.", g);
       }
     }
   }
 
   if (game_nb_moves_max(g) != game_nb_moves_max(g2)) {
     game_delete(g2);
-    return error("max moves can't be different.",g);
+    return error("max moves can't be different.", g);
   }
 
   if (game_is_wrapping(g) != game_is_wrapping(g2)) {
     game_delete(g2);
-    return error("wrapping can't be different.",g);
+    return error("wrapping can't be different.", g);
   }
 
   if (game_height(g) != game_height(g2)) {
     game_delete(g2);
-    return error("height can't be different.",g);
+    return error("height can't be different.", g);
   }
 
   if (game_width(g) != game_width(g2)) {
     game_delete(g2);
-    return error("width can't be different.",g);
+    return error("width can't be different.", g);
   }
 
   if (game_nb_moves_cur(g) != game_nb_moves_cur(g2)) {
     game_delete(g2);
-    return error("current moves can't be different.",g);
+    return error("current moves can't be different.", g);
   }
 
   game_delete(g);
@@ -164,7 +164,7 @@ bool test_height() {
   game g = game_new_empty_ext(width, height, false);
 
   if (game_height(g) != height) {
-    return error("height isn't the same",g);
+    return error("height isn't the same", g);
   }
 
   game_delete(g);
@@ -180,7 +180,7 @@ bool test_width() {
   game g = game_new_empty_ext(width, height, false);
 
   if (game_width(g) != width) {
-    return error("height isn't the same",g);
+    return error("height isn't the same", g);
   }
 
   game_delete(g);
