@@ -1,3 +1,6 @@
+#ifndef ASDE_SLIST_UTILITARY_H
+#define ASDE_SLIST_UTILITARY_H
+
 #include <stdbool.h>
 #include "../game.h"
 #include "../game_io.h"
@@ -34,4 +37,6 @@ extern SList asde_slist_concat(SList L1,  SList L2);
 
 // reverses a SList and returns the new list
 extern SList asde_slist_reverse(SList L);
+
+#endif /* ASDE_SLIST_UTILITARY */
 

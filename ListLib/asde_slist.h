@@ -1,3 +1,6 @@
+#ifndef ASDE_SLIST_H
+#define ASDE_SLIST_H
+
 #include <stdbool.h>
 #include "../game.h"
 #include "../game_io.h"
@@ -30,3 +33,4 @@ extern  SList  asde_slist_next(SList L);
 // gets data in a SList ->  fonction valeur(val L:liste d'objet): objet;
 extern  data_type asde_slist_data(SList L);
 
+#endif /* ASDE_SLIST_H */

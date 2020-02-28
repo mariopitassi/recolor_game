@@ -89,7 +89,17 @@ void asde_slist_print_intList (SList L){
 // SList asde_slist_delete_last (SList L);
 
 // deletes all occurrences of an element in a SList
-// SList asde_slist_delete_all (SList L, data_type data);
+SList asde_slist_delete_all_ter (SList L, SList p, data_type data){
+    if (asde_slist_isEmpty(asde_slist_next(p))) return L;
+    if (asde_slist_data(asde_slist_next(p)) == data) return asde_slist_delete_all_ter(L, asde_slist_delete_after(L, p), data);
+    return asde_slist_delete_all_ter(L, asde_slist_next(p), data);
+}
+
+SList asde_slist_delete_all (SList L, data_type data){
+    if (asde_slist_isEmpty(L)) return L;
+    if (asde_slist_data(L) == data) return asde_slist_delete_all(asde_slist_delete_first(L), data);
+    return asde_slist_delete_all_ter(L, L, data);
+}
 
 // adds L2 onto the end of L1
 SList asde_slist_concat(SList L1,  SList L2){

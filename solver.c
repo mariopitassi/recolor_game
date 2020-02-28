@@ -2,17 +2,13 @@
 #include "ListLib/asde_slist_utilitary_functions.h"
 #include "game.h"
 #include "game_io.h"
+#include "solver.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct solution {
-  color *moves;
-  uint nb_moves;
-} * sol;
-
-static void error(bool cond, char *err_mess) {
+void error(bool cond, char *err_mess) {
   if (cond) {
     fprintf(stderr, "Error: %s \n\n", err_mess);
     exit(EXIT_FAILURE);
@@ -24,14 +20,6 @@ sol sol_alloc() {
   error(s == NULL, "Allocation went wrong\n");
   s->nb_moves = 0;
   return s;
-}
-
-void print(color *moves_arr, uint size) {
-  // printf("\n");
-  for (int i = 0; i < size; i++) {
-    printf("%d ", (moves_arr[i]));
-  }
-  printf("\n");
 }
 
 // Joue plusieurs coups
@@ -96,36 +84,39 @@ uint nb_colors(cgame g, color *moves, uint nb_moves) {
 }
 
 // Met à jour la liste "color_around" avec les couleurs adjacentes
-void around(game g, uint x, uint y, color oldcolor, SList color_around) {
+void around(game g, uint x, uint y, color oldcolor, SList color_around, uint* nb_color_around) {
 
   if (game_cell_current_color(g, x, y) == oldcolor) {
-    game_set_cell_init(g, x, y, 999);
+    game_set_cell_init(g, x, y, 99);
 
     if (x < game_width(g) - 1)
-      around(g, x + 1, y, oldcolor, color_around);
+      around(g, x + 1, y, oldcolor, color_around, nb_color_around);
     if (y < game_height(g) - 1)
-      around(g, x, y + 1, oldcolor, color_around);
+      around(g, x, y + 1, oldcolor, color_around, nb_color_around);
     if (x > 0)
-      around(g, x - 1, y, oldcolor, color_around);
+      around(g, x - 1, y, oldcolor, color_around, nb_color_around);
     if (y > 0)
-      around(g, x, y - 1, oldcolor, color_around);
+      around(g, x, y - 1, oldcolor, color_around, nb_color_around);
 
     if (game_is_wrapping(g)) {
       if (x == game_width(g) - 1)
-        around(g, (x + 1 - game_width(g)), y, oldcolor, color_around);
+        around(g, (x + 1 - game_width(g)), y, oldcolor, color_around, nb_color_around);
       if (y == game_height(g) - 1)
-        around(g, x, (y + 1 - game_height(g)), oldcolor, color_around);
+        around(g, x, (y + 1 - game_height(g)), oldcolor, color_around, nb_color_around);
       if (x == 0)
-        around(g, (game_width(g) - 1), y, oldcolor, color_around);
+        around(g, (game_width(g) - 1), y, oldcolor, color_around, nb_color_around);
       if (y == 0)
-        around(g, x, (game_height(g) - 1), oldcolor, color_around);
+        around(g, x, (game_height(g) - 1), oldcolor, color_around, nb_color_around);
     }
   }
 
-  else {
-    if (!asde_slist_belongs_to(color_around, game_cell_current_color(g, x, y)))
-      color_around =
-          asde_slist_append(color_around, game_cell_current_color(g, x, y));
+  else if (game_cell_current_color(g, x, y) != 99){
+    nb_color_around[game_cell_current_color(g,x,y)] += 1;
+    SList p = asde_slist_delete_all(color_around, game_cell_current_color(g,x,y));
+    while(!asde_slist_isEmpty(asde_slist_next(p)) && nb_color_around[game_cell_current_color(g,x,y)] < nb_color_around[asde_slist_data(asde_slist_next(p))]){
+      p = asde_slist_next(p);
+    }
+    color_around = asde_slist_insert_after(color_around, p, game_cell_current_color(g, x, y));
   }
 }
 
@@ -137,16 +128,19 @@ SList col_around(cgame g, color *moves, uint nb_moves) {
   game g2 = game_copy(g);
   game_play_moves(g2, moves, nb_moves);
 
-  SList color = asde_slist_create_empty();
-  color = asde_slist_prepend(color, 999);
+  SList colors_around = asde_slist_create_empty();
+  colors_around = asde_slist_prepend(colors_around, 99);
 
-  around(g2, 0, 0, game_cell_current_color(g2, 0, 0), color);
+  color *nb_color_around = calloc(100, sizeof(color));
 
-  color = asde_slist_delete_first(color);
+  around(g2, 0, 0, game_cell_current_color(g2, 0, 0), colors_around, nb_color_around);
 
+  colors_around = asde_slist_delete_first(colors_around);
+
+  free(nb_color_around);
   game_delete(g2);
 
-  return color;
+  return colors_around;
 }
 
 // Affiche toutes les solutions possibles du jeu "g" sur "nb_moves" coups
@@ -231,45 +225,4 @@ uint nb_sol(cgame g) {
   asde_slist_delete_list(c_around);
   free(moves);
   return nb_sol;
-}
-
-int main(void) {
-
-  /**
-    color test_arr[] = {0, 0, 1, 4, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1,
-                        1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 0};
-
-    game g = game_new_ext(5, 6, test_arr, 12, false);
-  **/
-
-  game g = game_load("data/default_game.rec");
-  // game g = game_load("data/horizontal_game2S.rec");
-
-  /** FIND_MIN
-  sol solution = find_min(g);
-  if(solution->nb_moves > 0){
-    print(solution->moves, solution->nb_moves);
-    free(solution->moves);
-    free(solution);
-  }else{
-    printf("NO SOLUTION\n");
-    free(solution);
-  }**/
-
-  /** FIND_ONE **/
-  sol solution = find_one(g);
-  if (solution->nb_moves > 0) {
-    print(solution->moves, solution->nb_moves);
-    free(solution->moves);
-    free(solution);
-  } else {
-    printf("NO SOLUTION\n");
-    free(solution);
-  }
-
-  /** NB_SOL
-  printf("NB_SOL = %u\n", nb_sol(g)); **/
-
-  game_delete(g);
-  return EXIT_SUCCESS;
 }
