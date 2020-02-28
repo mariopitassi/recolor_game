@@ -17,7 +17,7 @@ To download the project you need to run the command : `git clone https://service
 You can use our helper to manipulate the project easily. Open your terminal and run `./helper.sh <command>`.
 
 There are 6 use cases : 
-- `build` : build project out-of-source using CMake in /build directory
+- `build release|debug` : build project out-of-source using CMake in /build directory in release or debug mode
 - `test` : run all project tests using ctest
 - `coverage` : check coverage of code using CMake
 - `switch` : switch between V1 and V2 of recolor using git branch

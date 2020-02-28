@@ -13,9 +13,22 @@ else
     if [ "$1" = "build" ]
     then
         if [ ! -d "./build" ]; then
-            mkdir build
-            (cd build && cmake .. && make)
+
+            if [ "$2" = "release" ]; 
+            then
+                mkdir build
+                (cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make)
+            elif [ "$2" = "debug" ]; 
+            then 
+                mkdir build
+                (cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make)
+            else
+                echo "Usage: ./helper.sh build release|debug"
+            fi
+
         else
+            echo "$(tput setaf 3)\nAttention ! Ceci est un simple make..."
+            echo "Si vous souhaiter changer de mode de compilation (Debug ou Release), faites un clean d'abord...\n$(tput sgr0)"
             (cd build && make)
         fi
 
