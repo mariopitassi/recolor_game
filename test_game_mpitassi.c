@@ -9,9 +9,10 @@
 // Author: PITASSI Mario
 
 /* ************* Error handler *********** */
-static bool error(char *err_mess) {
+bool error(char *err_mess, game g) {
   fprintf(stderr, "Error: %s \n\n", err_mess);
-  return true;
+  game_delete(g);
+  return false;
 }
 
 color tab[] = {0, 0, 0, 2, 0, 2, 1, 0, 1, 0, 3, 0, 0, 3, 3, 1, 1, 1, 1, 3, 2,
@@ -29,16 +30,13 @@ bool test_game_new() {
   game g = game_new(tab, coups_max);
 
   if (g == NULL) {
-    error("g is not a valid pointer.");
-    return false;
+    return error("g is not a valid pointer.",g);
   }
 
   for (int i = 0; i <= SIZE - 1; i++) {
     for (int j = 0; j <= SIZE - 1; j++) {
       if (game_cell_current_color(g, j, i) != tab[SIZE * i + j]) {
-        error("cells aren't initialized with good values from tab.");
-        game_delete(g);
-        return false;
+        return error("cells aren't initialized with good values from tab.",g);
       }
     }
   }
@@ -46,16 +44,12 @@ bool test_game_new() {
   for (uint i = 1; i <= SIZE; i++) {
     game g2 = game_new(tab, i);
     if (g2 == NULL) {
-      error("g2 is not a valid pointer.");
-      game_delete(g);
-      return false;
+      return error("g2 is not a valid pointer.",g);
     }
 
     if (game_nb_moves_max(g2) != i) {
-      error("max move not initialized.");
       game_delete(g2);
-      game_delete(g);
-      return false;
+      return error("max move not initialized.",g);
     }
 
     game_delete(g2);
@@ -64,17 +58,13 @@ bool test_game_new() {
   uint coups_test = game_nb_moves_max(g);
 
   if (coups_max != coups_test) {
-    error("max moves aren't the same so it doesn't change.");
-    game_delete(g);
-    return false;
+    return error("max moves aren't the same so it doesn't change.",g);
   }
 
   uint coups_current_test = game_nb_moves_cur(g);
 
   if (coups_current_test != 0) {
-    error("current moves aren't the same so it doesn't change.");
-    game_delete(g);
-    return false;
+    return error("current moves aren't the same so it doesn't change.",g);
   }
 
   game_delete(g);
@@ -88,16 +78,13 @@ bool test_set_max_moves() {
   game g = game_new(tab, coups_max);
 
   if (g == NULL) {
-    error("g is not a valid pointer.");
-    return false;
+    return error("g is not a valid pointer.",g);
   }
 
   uint coups = 54;
 
   if (game_nb_moves_cur(g) > coups) {
-    error("you can't put a max_move < current_move.");
-    game_delete(g);
-    return false;
+    return error("you can't put a max_move < current_move.",g);
   }
 
   game_set_max_moves(g, coups);
@@ -105,9 +92,7 @@ bool test_set_max_moves() {
   uint coups_test = game_nb_moves_max(g);
 
   if (coups != coups_test) {
-    error("max moves aren't the same, it doesn't change.");
-    game_delete(g);
-    return false;
+    return error("max moves aren't the same, it doesn't change.",g);
   }
 
   game_delete(g);
@@ -119,11 +104,8 @@ bool test_copy() {
   uint coups_max = 12;
   game g = game_new(tab, coups_max);
 
-  bool problem = false;
-
   if (g == NULL) {
-    error("g is not a valid pointer.");
-    return false;
+    return error("g is not a valid pointer.",g);
   }
 
   game_play_one_move(g, 1);
@@ -131,45 +113,42 @@ bool test_copy() {
   game g2 = game_copy(g);
 
   if (g2 == NULL) {
-    game_delete(g);
-
-    error("g2 is not a valid pointer.");
-    return false;
+    return error("g2 is not a valid pointer.",g);
   }
 
   for (int i = 0; i <= SIZE - 1; i++) {
     for (int j = 0; j <= SIZE - 1; j++) {
       if (game_cell_current_color(g, j, i) !=
           game_cell_current_color(g2, j, i)) {
-        problem = error("cells copied weren't initialized correctly.");
+            game_delete(g2);
+            return error("cells copied weren't initialized correctly.",g);
       }
     }
   }
 
   if (game_nb_moves_max(g) != game_nb_moves_max(g2)) {
-    problem = error("max moves can't be different.");
+    game_delete(g2);
+    return error("max moves can't be different.",g);
   }
 
   if (game_is_wrapping(g) != game_is_wrapping(g2)) {
-    problem = error("wrapping can't be different.");
+    game_delete(g2);
+    return error("wrapping can't be different.",g);
   }
 
   if (game_height(g) != game_height(g2)) {
-    problem = error("height can't be different.");
+    game_delete(g2);
+    return error("height can't be different.",g);
   }
 
   if (game_width(g) != game_width(g2)) {
-    problem = error("width can't be different.");
+    game_delete(g2);
+    return error("width can't be different.",g);
   }
 
   if (game_nb_moves_cur(g) != game_nb_moves_cur(g2)) {
-    problem = error("current moves can't be different.");
-  }
-
-  if (problem) {
-    game_delete(g);
     game_delete(g2);
-    return false;
+    return error("current moves can't be different.",g);
   }
 
   game_delete(g);
@@ -185,9 +164,7 @@ bool test_height() {
   game g = game_new_empty_ext(width, height, false);
 
   if (game_height(g) != height) {
-    error("height isn't the same");
-    game_delete(g);
-    return false;
+    return error("height isn't the same",g);
   }
 
   game_delete(g);
@@ -203,9 +180,7 @@ bool test_width() {
   game g = game_new_empty_ext(width, height, false);
 
   if (game_width(g) != width) {
-    error("height isn't the same");
-    game_delete(g);
-    return false;
+    return error("height isn't the same",g);
   }
 
   game_delete(g);

@@ -23,28 +23,29 @@ color tab[] = {0, 0, 0, 2, 0, 2, 1, 0, 1, 0, 3, 0, 0, 3, 3, 1, 1, 1, 1, 3, 2,
  * @return false if a field of the game structure hasn't been correctly
  * initialised
  */
+ bool error(char *err_mess, game g) {
+  fprintf(stderr, "Error: %s \n\n", err_mess);
+  game_delete(g);
+  return false;
+}
 bool test_game_new_empty() {
   // initializing a new empty game and test if the game is correctly initialized
   game g = game_new_empty();
 
   if (g == NULL) {
-    fprintf(stderr, "Error: le tableau du jeu n'est pas intialisé");
-    return false;
+    return error("invalid pointer",g);
   }
   // checking if all the cells have been initialized to 0
   for (int i = 0; i <= SIZE - 1; i++) {
     for (int j = 0; j <= SIZE - 1; j++) {
       if (game_cell_current_color(g, j, i) != 0) {
-        fprintf(stderr, "Error:le tableau n'est pas initialisé à RED");
-        game_delete(g);
-        return false;
+        return error("Error:le tableau n'est pas initialisé à RED",g);
       }
     }
   }
   // checking if the max nb moves has been initialized to 0
   if (game_nb_moves_max(g) != 0) {
-    game_delete(g);
-    return false;
+    return error("Nombre de moves max incorrect",g);
   }
   // free the created game
   game_delete(g);
@@ -67,46 +68,31 @@ bool test_game_new_empty_ext() {
   // initializing a new game for the test with the testing parameters
   game g = game_new_empty_ext(width, height, wrapping);
   if (g == NULL) {
-    fprintf(stderr, " Erreur: le tableau du jeu n'est pas initialisé");
-    return false;
+    return error(" Erreur: le tableau du jeu n'est pas initialisé",g);
   }
   // checking if the game width has been correctly initialized
   if (game_width(g) != width) {
-    fprintf(stderr, "Erreur, la largeur du tableau du jeu n'a pas été "
-                    "initialisé correctement");
-    game_delete(g);
-    return false;
+    return error("Erreur, la largeur du tableau du jeu n'a pas été initialisé correctement",g);
   }
   // checking if the game height has been correctly initialized
   if (game_height(g) != height) {
-    fprintf(stderr, "Erreur, la largeur du tableau du jeu n'a pas été "
-                    "initialisé correctement");
-    game_delete(g);
-    return false;
+    return error("Erreur, la largeur du tableau du jeu n'a pas été initialisé correctement",g);
   }
   // checking if all the cells have been initialized to 0
   for (int y = 0; y < game_height(g); y++) {
     for (int x = 0; x < game_width(g); x++) {
       if (game_cell_current_color(g, x, y) != 0) {
-        fprintf(stderr, "Error:le tableau n'est pas initialisé à 0");
-        game_delete(g);
-        return false;
+        return error("Error:le tableau n'est pas initialisé à 0",g);
       }
     }
   }
   // checking if the max nb moves has been initialized to 0
   if (game_nb_moves_max(g) != 0) {
-    fprintf(stderr, "Erreur, le nombres de moves max n'a pas été initialisé "
-                    "correctement à 0");
-    game_delete(g);
-    return false;
+    return error("Erreur, le nombres de moves max n'a pas été initialisé correctement à 0",g);
   }
   // checking if the wrapping bool has been correctly initialized
   if (game_is_wrapping(g) != wrapping) {
-    fprintf(stderr, "Erreur, le booléen determinant si le jeu est wrapping ou "
-                    "non n'a pas été initialisé correctement");
-    game_delete(g);
-    return false;
+    return error("Erreur, le booléen determinant si le jeu est wrapping ou non n'a pas été initialisé correctement",g);
   }
   // free the created game
   game_delete(g);
@@ -127,8 +113,7 @@ bool test_game_delete() {
   game g = game_new(tab, coups_max);
   // checking if the game exists and has been correctly initialized
   if (g == NULL) {
-    fprintf(stderr, "Error:le tableau du jeu n'est pas intialisé");
-    return false;
+    return error("Error:le tableau du jeu n'est pas intialisé",g);
   }
   // free the created game
   game_delete(g);
@@ -153,13 +138,11 @@ bool test_game_nb_moves_cur() {
   game g = game_new(tab, coups_max);
 
   if (g == NULL) {
-    fprintf(stderr, "Error: le tableau du jeu n'est pas intialisé");
-    return false;
+    return error("Error: le tableau du jeu n'est pas intialisé",g);
   }
   // checking current nb moves = 0 at the beggining of the game
   if (game_nb_moves_cur(g) != 0) {
-    game_delete(g);
-    return false;
+    return error("nbr de moves actuel non initialisé à 0",g);
   }
   // playing random moves to increment current nb moves
   for (int i = 0; i <= coups_max;) {
@@ -169,8 +152,7 @@ bool test_game_nb_moves_cur() {
     // cheking if the current nb moves is correctly incremented after playing a
     // move
     if (game_nb_moves_cur(g) != i) {
-      game_delete(g);
-      return false;
+      return error("le nbr de coups actuel n'a pas été incrémenté",g);
     }
   }
   // restart the game
@@ -178,8 +160,7 @@ bool test_game_nb_moves_cur() {
 
   // checking current mb moves = 0 after restarting the game
   if (game_nb_moves_cur(g) != 0) {
-    game_delete(g);
-    return false;
+    return error("le nbr de coups actuel n'a pas été réinitialisé avec le reset",g);
   }
   // free the created game
   game_delete(g);
