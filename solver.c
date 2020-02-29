@@ -15,34 +15,53 @@ void error(bool cond, char *err_mess) {
   }
 }
 
-// Alloue la mémoire pour une solution et initialise le nombre de coups à 0
-// N'alloue pas la mémoire pour le tableau, si une solution est trouvé alors on
-// va l'allouer dans "look_for_sol"
-sol sol_alloc() {
+/**
+ * @brief Allocate memory for a solution structure and initialized it to default
+ * NB: The tab is not allocated (look_for_sol will do it if a solution is found)
+ * @return sol* a pointer to the allocated solution structure
+ */
+static sol sol_alloc() {
   sol s = malloc(sizeof(struct solution));
   error(s == NULL, "Allocation went wrong\n");
   s->nb_moves = 0;
   return s;
 }
 
-// Alloue la mémoire pour un tableau de couleur à "nb_moves" coups
-color *moves_alloc(uint nb_moves) {
+/**
+ * @brief Allocate memory for a color array
+ *
+ * @param nb_moves number of moves to store
+ * @return color* a pointer to the allocated tab
+ */
+static color *moves_alloc(uint nb_moves) {
   color *moves = malloc(nb_moves * sizeof(color));
   error(moves == NULL, "Allocation went wrong\n");
   return moves;
 }
 
-// Joue plusieurs coups
-void game_play_moves(game g, color *moves, uint nb_moves) {
+/**
+ * @brief Play a hit board
+ *
+ * @param g a game instance
+ * @param moves a tab of color to play iteratively
+ * @param nb_moves total of moves
+ */
+static void game_play_moves(game g, color *moves, uint nb_moves) {
   error(moves == NULL, "Invalid pointer\n");
   for (uint i = 0; i < nb_moves; i++) {
     game_play_one_move(g, moves[i]);
   }
 }
 
-// Copie un tableau, utile lorsque l'on stockera notre
-// tableau dans la structure solution
-color *copy_arr(color *arr, uint len) {
+/**
+ * @brief Copy an array of color
+ * NB : useful when storing our table in the solution structure
+ *
+ * @param arr a color array
+ * @param len the length of the array
+ * @return color*
+ */
+static color *copy_arr(color *arr, uint len) {
   error(arr == NULL, "Invalid pointer\n");
   color *copy_arr = malloc(len * sizeof(color));
   for (int i = 0; i < len; i++) {
@@ -51,27 +70,15 @@ color *copy_arr(color *arr, uint len) {
   return copy_arr;
 }
 
-// Determine si le tableau passé en paramètre est une solution ou pas
-// Fonction non utilisé car la fonction "look_for_sol" le fait indirectement
-// grace à "if (moves_left < nb_col - 1) return"
-// On peut donc supprimé cette fonction
-bool is_solution(cgame g, color *moves, uint nb_moves) {
-  error(moves == NULL, "Invalid pointer\n");
-  game g2 = game_copy(g);
-  for (int i = 0; i < nb_moves; i++) {
-    game_play_one_move(g2, moves[i]);
-    if (game_is_over(g2)) {
-      game_delete(g2);
-      return true;
-    }
-  }
-  game_delete(g2);
-  return false;
-}
-
-// Retourne le nb de couleurs du jeu après avoir joué les couleurs du tableaux
-// sur "nb_moves" coups
-uint nb_colors(cgame g, color *moves, uint nb_moves) {
+/**
+ * @brief Play a hit board and count the number of color in the grid
+ *
+ * @param g a game instance
+ * @param moves a colors array
+ * @param nb_moves number of moves to play
+ * @return uint number of color in the grid
+ */
+static uint nb_colors(cgame g, color *moves, uint nb_moves) {
   error(moves == NULL, "Unvalid pointer\n");
   game g2 = game_copy(g);
   game_play_moves(g2, moves, nb_moves);
@@ -95,7 +102,6 @@ uint nb_colors(cgame g, color *moves, uint nb_moves) {
   return nb_col;
 }
 
-// Met à jour la liste "color_around" avec les couleurs adjacentes (trié)
 void around(game g, uint x, uint y, color oldcolor, SList color_around,
             uint *counter) {
 
@@ -139,10 +145,16 @@ void around(game g, uint x, uint y, color oldcolor, SList color_around,
   }
 }
 
-// Retourne une liste de couleurs adjacentes (trié) après avoir joué les
-// couleurs du
-// tableaux "moves" de "moves[0] à moves[nb_moves-1]"
-SList col_around(cgame g, color *moves, uint nb_moves) {
+/**
+ * @brief Returns a list of adjacent colors after playing the colors in the
+ * "moves" array from "moves [0] to moves [nb_moves-1]" NB : Last optimization
+ * possible : sort this list
+ * @param g an instance of a game
+ * @param moves array of played moves
+ * @param nb_moves nb of moves to play
+ * @return SList a list of adjacent colors
+ */
+static SList col_around(cgame g, color *moves, uint nb_moves) {
   error(moves == NULL, "Unvalid pointer\n");
   game g2 = game_copy(g);
   game_play_moves(g2, moves, nb_moves);
@@ -162,18 +174,31 @@ SList col_around(cgame g, color *moves, uint nb_moves) {
   return colors_around;
 }
 
-// Affiche toutes les solutions possibles du jeu "g" sur "nb_moves" coups
-// Cette fonctions marche pour "game_default" et "game_horizontal_2S" mais pas
-// avec "2N" (pour le moment)
-void look_for_sol(cgame g, color *moves, SList c_around, uint nb_moves,
-                  uint nb_moves_max, uint *nb_sol, sol s, bool look_nb_sol) {
+/**
+ * @brief This function finds all solutions (or just one) it can.
+ * It returns nothing but it will update some paramaters during the search...
+ * NB: It works with "game_default" and "game_horizontal_2S" but not with "2N"
+ * @param g an instance of a game
+ * @param moves a tab of move played by the solver
+ * @param c_around a list of all color around the first cell
+ * @param nb_moves number of current move played
+ * @param nb_moves_max number of move max
+ * @param nb_sol number of solution(s) found
+ * @param s a pointer to a blank solution which could be updated or unused
+ * (NULL)
+ * @param look_nb_sol bool used to stop or not the search when the first
+ * solution is found
+ */
+static void look_for_sol(cgame g, color *moves, SList c_around, uint nb_moves,
+                         uint nb_moves_max, uint *nb_sol, sol s,
+                         bool look_nb_sol) {
   uint moves_left = nb_moves_max - nb_moves;
   uint nb_col = nb_colors(g, moves, nb_moves);
 
   if (moves_left < nb_col - 1)
-    return; // On arrete car inutile de jouer (sûr de perdre)
+    return; // We stop because it's useless to play (sure to lose)
 
-  if (nb_moves == nb_moves_max || nb_col == 1) { // Solution trouvé
+  if (nb_moves == nb_moves_max || nb_col == 1) { // Solution found
     *nb_sol += 1;
     if (!look_nb_sol) {
       s->moves = copy_arr(moves, nb_moves);
@@ -186,25 +211,23 @@ void look_for_sol(cgame g, color *moves, SList c_around, uint nb_moves,
     moves[nb_moves] = asde_slist_data(c_around);
     SList next_c_around = col_around(
         g, moves,
-        nb_moves + 1); //"nb_moves+1" car on vient d'ajouter un coup à "moves"
+        nb_moves + 1); //"nb_moves + 1" because we just added a move to "moves"
     look_for_sol(g, moves, next_c_around, nb_moves + 1, nb_moves_max, nb_sol, s,
                  look_nb_sol);
     asde_slist_delete_list(next_c_around);
     c_around = asde_slist_next(c_around);
     if (*nb_sol > 0 && !look_nb_sol)
-      return; // On arrête lorsqu'on a trouvé une solution et qu'on ne cherche
-              // pas le nb de solution
+      return; // we stop when we find a solution and we dont search nb sol
   }
 
   asde_slist_delete_list(c_around);
 }
 
-// Trouve la plus petite solution
 sol find_min(cgame g) {
   sol s = sol_alloc();
   color move_min[] = {0};
   uint nb_moves_min = nb_colors(g, move_min, 0) -
-                      1; // (Nombre de couleur du jeu - 1) avant de jouer
+                      1; // (Number of game colors - 1) before playing
   for (uint nb_moves = nb_moves_min; nb_moves <= game_nb_moves_max(g);
        nb_moves++) {
     color *moves = moves_alloc(nb_moves);
@@ -217,8 +240,7 @@ sol find_min(cgame g) {
     if (nb_sol > 0)
       return s;
   }
-  return s; // Si aucune solution trouvé on retourne la solution (s->nb_moves ==
-            // 0)
+  return s;
 }
 
 sol find_one(cgame g) {
@@ -235,7 +257,7 @@ sol find_one(cgame g) {
 }
 
 uint nb_sol(cgame g) {
-  sol s = NULL; // NULL car elle ne sera pas utilisé
+  sol s = NULL; // NULL because it will not be used
   color *moves = moves_alloc(game_nb_moves_max(g));
   SList c_around = col_around(g, moves, 0);
   uint nb_sol = 0;
