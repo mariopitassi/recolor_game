@@ -101,7 +101,7 @@ void around(game g, uint x, uint y, color oldcolor, SList color_around,
 
   color current_cell = game_cell_current_color(g, x, y);
 
-  if (game_cell_current_color(g, x, y) == oldcolor) {
+  if (current_cell == oldcolor) {
     game_set_cell_init(g, x, y, 99); // On initialise cette couleur pour pas que
                                      // la fonction tourne à l'infini
     // (99 car improbable d'avoir un jeu à 100 couleurs)
@@ -127,7 +127,7 @@ void around(game g, uint x, uint y, color oldcolor, SList color_around,
   }
   // Tri de la liste
   // On met les couleurs qui reviennent le plus en début de liste
-  else if (game_cell_current_color(g, x, y) != 99) {
+  else if (current_cell != 99) {
     counter[current_cell] += 1;
     SList p = asde_slist_delete_all(color_around, current_cell);
     while (!asde_slist_isEmpty(asde_slist_next(p)) &&
