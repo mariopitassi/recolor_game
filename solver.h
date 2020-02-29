@@ -1,14 +1,14 @@
 #ifndef SOLVER_H
 #define SOLVER_H
+#include "ListLib/asde_slist.h"
 #include "game.h"
 #include "game_io.h"
-#include "ListLib/asde_slist.h"
 #include <stdio.h>
 
 typedef struct solution {
   color *moves;
   uint nb_moves;
-}*sol;
+} * sol;
 
 void error(bool cond, char *err_mess);
 
@@ -31,7 +31,8 @@ bool is_solution(cgame g, color *moves, uint nb_moves);
 uint nb_colors(cgame g, color *moves, uint nb_moves);
 
 // Met à jour la liste "color_around" avec les couleurs adjacentes
-void around(game g, uint x, uint y, color oldcolor, SList color_around, uint* nb_color_around);
+void around(game g, uint x, uint y, color oldcolor, SList color_around,
+            uint *nb_color_around);
 
 // Retourne une liste de couleurs adjacentes après avoir joué les couleurs du
 // tableaux "moves" de "moves[0] à moves[nb_moves-1]"
