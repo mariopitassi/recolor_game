@@ -1,10 +1,11 @@
 # Recolor game projet
 
-*This project is maintained by Anouche KASPARIAN, Mattias ROUSSEAU, Farouk FAKHOUN and Mario PITASSI.* 
+_This project is maintained by Anouche KASPARIAN, Mattias ROUSSEAU, Farouk FAKHOUN and Mario PITASSI._
 
-## Installation & usage 
+## Installation & usage
 
-Prerequisites : 
+Prerequisites :
+
 - Git
 - GCC, CLang or another C compiler
 - Valgrind (memory leaks)
@@ -16,14 +17,15 @@ To download the project you need to run the command : `git clone https://service
 
 You can use our helper to manipulate the project easily. Open your terminal and run `./helper.sh <command>`.
 
-There are 7 use cases : 
+There are 7 use cases :
+
 - `build release|debug` : build project out-of-source using CMake in /build directory in release or debug mode
 - `test` : run all project tests using ctest
 - `clear` : delete ./build folder
 - `coverage` : check coverage of code using CMake
 - `switch` : switch between V1 and V2 of recolor using git branch
 - `memcheck` : check memory leak on executables
-- `format` : format all *.h et *.c with clang-format
+- `format` : format all _.h et _.c with clang-format
 
 ## Architecture
 
@@ -42,7 +44,6 @@ There are 7 use cases :
 │   └── horizontal_game2S.rec
 ├── helper.sh
 ├── include
-│   ├── .DS_Store
 │   ├── asde_slist.h
 │   ├── asde_slist_utilitary_functions.h
 │   ├── game.h
@@ -68,6 +69,7 @@ There are 7 use cases :
 ### 1) Fonctions principales
 
 Mario
+
 - set_max_moves
 - set_cell_init
 - game_play_one_move
@@ -75,18 +77,21 @@ Mario
 - game_width
 
 Mattias
+
 - restart
 - game_delete
 - game_moves_max
 - game_new_empty_ext
 
 Anouche
+
 - copy
 - game_is_over
 - nb_moves_max
 - game_new_ext
 
 Farouk
+
 - game_new
 - game_new_empty
 - cell_current_color
@@ -95,6 +100,7 @@ Farouk
 ### 2) Fonctions des tests
 
 Mario
+
 - test_game_new
 - test_set_max_moves
 - test_copy
@@ -102,18 +108,21 @@ Mario
 - test_game_width
 
 Mattias
+
 - test_game_new_empty
 - test_game_nb_moves_cur
 - test_game_delete
 - test_game_new_empty_ext
 
 Anouche
+
 - test_game_play_one_move
 - test_game_is_over
 - test_game_restart
 - test_game_new_ext
 
 Farouk
+
 - test_nb_moves_max
 - test_set_cell_init
 - test_cell_current_color
