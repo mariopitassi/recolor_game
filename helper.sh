@@ -3,12 +3,13 @@
 if [ $# = 0 ]; then 
     echo "$(tput setaf 3)Usage : helper.sh <command>"
     echo "$(tput setaf 7)where command is one of build, test, clear, coverage, memcheck and switch\n$(tput sgr0) "
-    echo "$(tput bold)build$(tput sgr0) - Create a build dir and copy executables in run dir"
+    echo "$(tput bold)build$(tput sgr0) <release|debug> - Create a build dir and copy executables in run dir"
     echo "$(tput bold)test$(tput sgr0)  - Run all the test of the program"
     echo "$(tput bold)clear$(tput sgr0) - Clean the projet (del: /build)"
     echo "$(tput bold)coverage$(tput sgr0) - Run coverage test"
     echo "$(tput bold)switch$(tput sgr0) <V1|V2> - Change version of the project"
     echo "$(tput bold)memcheck$(tput sgr0) - Do a complete memory check"
+    echo "$(tput bold)format$(tput sgr0) - Format all *.h and *.c file with clang-format"
 else
     if [ "$1" = "build" ]
     then
@@ -55,6 +56,18 @@ else
         fi
 
         (cd build && ctest && make ExperimentalCoverage)
+
+    elif [ "$1" = "format" ]
+    then
+        if [ ! -d "./include" ] || [ ! -d "./src" ] || [ ! -d "./tests" ]; then
+            echo "$(tput setaf 3)Ce n'est pas la dernière version du projet !"
+            clang-format -i *.c *.h
+            sleep 0.5
+        else 
+            find . -name '*.h' -o -name '*.c' | xargs clang-format -i
+        fi
+
+        echo "$(tput setaf 2)Les fichiers *.c et *.h ont été formatés !"
 
     elif [ "$1" = "switch" ]
     then
