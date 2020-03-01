@@ -10,13 +10,8 @@
  */
 typedef struct solution {
   color *moves;  // Tab of moves
-  uint nb_moves; // Number of mobes / Length of tab
+  uint nb_moves; // Number of moves / Length of tab
 } * sol;
-
-sol sol_alloc();
-
-color *moves_alloc(uint nb_moves);
-
 
 /**
  * @brief Error handler
@@ -27,18 +22,40 @@ color *moves_alloc(uint nb_moves);
 void error(bool cond, char *err_mess);
 
 /**
- * @brief Updates the "color_around" list with the adjacent colors recursively
- * NB: The list is sorted
+ * @brief Free a solution
+ * @param s a solution
+ */
+void free_sol(sol s);
+
+/**
+ * @brief Play a hit board
  *
  * @param g a game instance
- * @param x a position on the abscissa axis
- * @param y a position on the ordinate axis
- * @param oldcolor color to update
- * @param color_around list of color uptated...
- * @param counter represents the number of times a color is in the neighborhood
+ * @param moves a tab of color to play iteratively
+ * @param nb_moves total of moves
  */
-void around(game g, uint x, uint y, color oldcolor, SList color_around,
-            uint *nb_color_around);
+void game_play_moves(game g, color *moves, uint nb_moves);
+
+/**
+ * @brief Play a hit board and count the number of color in the grid
+ *
+ * @param g a game instance
+ * @param moves a colors array
+ * @param nb_moves number of moves to play
+ * @return uint number of color in the grid
+ */
+uint nb_colors(cgame g, color *moves, uint nb_moves);
+
+/**
+ * @brief Returns a list of adjacent colors after playing the colors in the
+ * "moves" array from "moves [0] to moves [nb_moves-1]" NB : Last optimization
+ * possible : sort this list
+ * @param g an instance of a game
+ * @param moves array of played moves
+ * @param nb_moves nb of moves to play
+ * @return SList a list of adjacent colors
+ */
+SList col_around(cgame g, color *moves, uint nb_moves);
 
 /**
  * @brief Finds the solution sequence being the smallest

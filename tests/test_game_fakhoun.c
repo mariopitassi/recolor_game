@@ -1,9 +1,12 @@
 #include "game.h"
 #include "game_io.h"
+#include "solver.h"
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 /**
  * @brief Test a condition
  * @param cond The condition to be tested
@@ -148,41 +151,58 @@ bool test_game_is_wrapping() {
   return true;
 }
 
-/* ********** USAGE ********** */
+/* ********** NB_SOL TEST ********** */
+bool test_nb_sol() {
+  game g = game_load("data/test_game_24sol.rec");
+  uint nb_solution = nb_sol(g);
+  if (test(nb_solution != 24,
+           "Error : Nombre de solution différent de 24 pour test_game_446N\n",
+           g))
+    return false;
 
-void usage(int argc, char *argv[]) {
-  fprintf(stderr, "Usage: %s <testname> [<...>]\n", argv[0]);
-  exit(EXIT_FAILURE);
+  game_set_max_moves(g, 3);
+  nb_solution = nb_sol(g);
+  if (test(nb_solution != 0, "Error : Nombre de solution différent de 0 pour "
+                             "jeu impossible à gagner\n",
+           g))
+    return false;
+
+  game_delete(g);
+
+  game g2 = game_load("data/test_game_1sol.rec");
+  nb_solution = nb_sol(g2);
+  if (test(nb_solution != 1,
+           "Error : Nombre de solution différent de 1 pour test_game_448N\n",
+           g2))
+    return false;
+
+  game_delete(g2);
+
+  game g3 = game_load("data/test_game_0.rec");
+  nb_solution = nb_sol(g3);
+  if (test(nb_solution != 0,
+           "Error : Nombre de solution différent de 0 pour test_game_won\n",
+           g3))
+    return false;
+
+  game_delete(g3);
+
+  return true;
 }
 
 /* ********** MAIN ROUTINE ********** */
 
 int main(int argc, char *argv[]) {
-  if (argc == 1)
-    usage(argc, argv);
 
   // start test
-  fprintf(stderr, "=> Start test fakhoun \"%s\"\n", argv[1]);
-  bool ok = false;
-  if (strcmp("game_nb_moves_max", argv[1]) == 0)
-    ok = test_game_nb_moves_max();
-  else if (strcmp("game_set_cell_init", argv[1]) == 0)
-    ok = test_game_set_cell_init();
-  else if (strcmp("game_cell_current_color", argv[1]) == 0)
-    ok = test_game_cell_current_color();
-  else if (strcmp("game_is_wrapping", argv[1]) == 0)
-    ok = test_game_is_wrapping();
-  else {
-    fprintf(stderr, "Error: test \"%s\" not found!\n", argv[1]);
-    exit(EXIT_FAILURE);
-  }
+  fprintf(stderr, "=> Start test fakhoun\n");
+  assert(test_game_nb_moves_max());
+  assert(test_game_set_cell_init());
+  assert(test_game_cell_current_color());
+  assert(test_game_is_wrapping());
+  assert(test_nb_sol());
 
   // print test result
-  if (ok) {
-    fprintf(stderr, "Test \"%s\" finished: SUCCESS\n", argv[1]);
-    return EXIT_SUCCESS;
-  } else {
-    fprintf(stderr, "Test \"%s\" finished: FAILURE\n", argv[1]);
-    return EXIT_FAILURE;
-  }
+  fprintf(stderr, "Test fakhoun finished: SUCCESS\n");
+  return EXIT_SUCCESS;
 }

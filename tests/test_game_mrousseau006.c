@@ -1,10 +1,9 @@
+#include "game.h"
+#include "solver.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "solver.h"
-#include "game.h"
-
 
 // Initialisation d'un jeu.
 color tab[] = {0, 0, 0, 2, 0, 2, 1, 0, 1, 0, 3, 0, 0, 3, 3, 1, 1, 1, 1, 3, 2,
@@ -80,15 +79,17 @@ bool test_game_new_empty_ext() {
   }
   // checking if the game width has been correctly initialized
   if (game_width(g) != width) {
-    return errorJEU("Erreur, la largeur du tableau du jeu n'a pas été initialisé "
-                 "correctement",
-                 g);
+    return errorJEU(
+        "Erreur, la largeur du tableau du jeu n'a pas été initialisé "
+        "correctement",
+        g);
   }
   // checking if the game height has been correctly initialized
   if (game_height(g) != height) {
-    return errorJEU("Erreur, la largeur du tableau du jeu n'a pas été initialisé "
-                 "correctement",
-                 g);
+    return errorJEU(
+        "Erreur, la largeur du tableau du jeu n'a pas été initialisé "
+        "correctement",
+        g);
   }
   // checking if all the cells have been initialized to 0
   for (int y = 0; y < game_height(g); y++) {
@@ -101,14 +102,15 @@ bool test_game_new_empty_ext() {
   // checking if the max nb moves has been initialized to 0
   if (game_nb_moves_max(g) != 0) {
     return errorJEU("Erreur, le nombres de moves max n'a pas été initialisé "
-                 "correctement à 0",
-                 g);
+                    "correctement à 0",
+                    g);
   }
   // checking if the wrapping bool has been correctly initialized
   if (game_is_wrapping(g) != wrapping) {
-    return errorJEU("Erreur, le booléen determinant si le jeu est wrapping ou non "
-                 "n'a pas été initialisé correctement",
-                 g);
+    return errorJEU(
+        "Erreur, le booléen determinant si le jeu est wrapping ou non "
+        "n'a pas été initialisé correctement",
+        g);
   }
   // free the created game
   game_delete(g);
@@ -187,26 +189,29 @@ bool test_game_nb_moves_cur() {
 
 /* test find_min */
 bool test_find_min() {
-  uint coup_max = 12;
+  // uint coup_max = 12;
   // creating an array of solutions known
-  color tabTest[] = {0,1,2,2,1,2,1,1,2,2,2,2};
-  
+  color tabTest[] = {0, 1, 2, 2, 1, 2, 1, 1, 2, 2, 2, 2};
+
   // creating the game that we want to test
-  game game_test = game_new_ext(3,4,tabTest,12,false);
-  // finding the minimal solution, with this game there are only 2 solution with different sizes
+  game game_test = game_new_ext(3, 4, tabTest, 12, false);
+  // finding the minimal solution, with this game there are only 2 solution with
+  // different sizes
   sol stest = find_min(game_test);
   // giving the minimal solution
-  color Solmin[] = {1,2};
+  color Solmin[] = {1, 2};
   uint Nb_min = 2;
-  // compare the number of moves of the solution we found with the real min solution 
-  if (stest->nb_moves != Nb_min){
-    return errorSOL("le nbr de moves de la sol ne correspond pas",game_test,stest);
-
+  // compare the number of moves of the solution we found with the real min
+  // solution
+  if (stest->nb_moves != Nb_min) {
+    return errorSOL("le nbr de moves de la sol ne correspond pas", game_test,
+                    stest);
   }
-  // compare the solution we found witht he real solution 
-  for(int i = 0; i < stest->nb_moves; i++ ){
-    if (stest->moves[i] != Solmin[i]){
-      return errorSOL("La solution minimale de correspond pas",game_test,stest);
+  // compare the solution we found witht he real solution
+  for (int i = 0; i < stest->nb_moves; i++) {
+    if (stest->moves[i] != Solmin[i]) {
+      return errorSOL("La solution minimale de correspond pas", game_test,
+                      stest);
     }
   }
 
@@ -217,21 +222,22 @@ bool test_find_min() {
   return true;
 }
 /* test de find one */
-bool test_find_one(){
-  uint coup_max = 12;
+bool test_find_one() {
+  // uint coup_max = 12;
   // creating an array of solutions known
-  color tabTest[] = {0,1,2,2,1,2,1,1,2,2,2,2};
-  // creating the game with the array of testing  
-  game game_test = game_new_ext(3,4,tabTest,12,false);
+  color tabTest[] = {0, 1, 2, 2, 1, 2, 1, 1, 2, 2, 2, 2};
+  // creating the game with the array of testing
+  game game_test = game_new_ext(3, 4, tabTest, 12, false);
   // finding a solution to test
   sol stest = find_one(game_test);
   // testing the solution
-  for(int i = 0 ; i < stest->nb_moves;i++){
+  for (int i = 0; i < stest->nb_moves; i++) {
     game_play_one_move(game_test, stest->moves[i]);
   }
-  // verifying that the game is over after playing the solution we found 
-  if(!game_is_over(game_test)){
-    return errorSOL(" la solution renvoyé n'est pas une solution du jeu",game_test,stest);
+  // verifying that the game is over after playing the solution we found
+  if (!game_is_over(game_test)) {
+    return errorSOL(" la solution renvoyé n'est pas une solution du jeu",
+                    game_test, stest);
   }
   free(stest->moves);
   free(stest);
@@ -264,7 +270,7 @@ int main(int argc, char *argv[]) {
     ok = test_find_min();
   } else if (strcmp("find_one", argv[1]) == 0) {
     ok = test_find_one();
-    
+
   } else {
     fprintf(stderr, "Error: test \"%s\" not found!\n", argv[1]);
     exit(EXIT_FAILURE);

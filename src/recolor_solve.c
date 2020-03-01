@@ -4,7 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Ajoute une extension a un fichier
+/**
+ * @brief Add an extension to a file name
+ * @param fname a pointer to a file name
+ * @param extension pointer to a string
+ * @return the extended file name
+ */
 char *extend_fname(const char *fname, const char *extension) {
   char *new_fname = malloc(strlen(fname) + strlen(extension) +
                            1);  // make space for the new string
@@ -13,7 +18,12 @@ char *extend_fname(const char *fname, const char *extension) {
   return new_fname;
 }
 
-// Libére la solution et la print dans un fichier
+/**
+ * @brief Print and free a solution in a file
+ * NB: print "NO SOLUTION\n" if there is no solution
+ * @param solution pointer to a solution
+ * @param fname pointer to a string
+ */
 void free_sol_and_print_in_file(sol solution, const char *fname) {
   error(solution == NULL || fname == NULL, "Bad pointer\n");
 
@@ -27,18 +37,20 @@ void free_sol_and_print_in_file(sol solution, const char *fname) {
       (i == 0) ? fprintf(f, "%u", solution->moves[i])
                : fprintf(f, " %u", solution->moves[i]);
     }
-    free(solution->moves);
-    free(solution);
   } else {
     fprintf(f, "NO SOLUTION\n");
-    free(solution);
   }
 
   fclose(f);
   free(new_fname);
+  free_sol(solution);
 }
 
-// Print le nb de solution dans un fichier
+/**
+ * @brief print the number of solutions in a file
+ * @param nb_sol the number of solutions
+ * @param fname pointer to a file name
+ */
 void print_nb_sol_in_file(uint nb_sol, const char *fname) {
   error(fname == NULL, "Bad pointer\n");
 
