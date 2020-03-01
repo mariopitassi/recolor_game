@@ -1,8 +1,8 @@
 #ifndef ASDE_SLIST_UTILITARY_H
 #define ASDE_SLIST_UTILITARY_H
 
-#include "../game.h"
-#include "../game_io.h"
+#include "game.h"
+#include "game_io.h"
 #include <stdbool.h>
 
 // erases the entire list

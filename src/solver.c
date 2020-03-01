@@ -1,6 +1,6 @@
 #include "solver.h"
-#include "ListLib/asde_slist.h"
-#include "ListLib/asde_slist_utilitary_functions.h"
+#include "asde_slist.h"
+#include "asde_slist_utilitary_functions.h"
 #include "game.h"
 #include "game_io.h"
 #include <stdbool.h>

@@ -1,8 +1,8 @@
 #ifndef ASDE_SLIST_H
 #define ASDE_SLIST_H
 
-#include "../game.h"
-#include "../game_io.h"
+#include "game.h"
+#include "game_io.h"
 #include <stdbool.h>
 
 typedef color data_type;

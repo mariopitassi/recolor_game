@@ -1,6 +1,6 @@
 #ifndef SOLVER_H
 #define SOLVER_H
-#include "ListLib/asde_slist.h"
+#include "asde_slist.h"
 #include "game.h"
 #include "game_io.h"
 #include <stdio.h>
@@ -12,6 +12,14 @@ typedef struct solution {
   color *moves;  // Tab of moves
   uint nb_moves; // Number of mobes / Length of tab
 } * sol;
+
+/**
+ * @brief Error handler
+ *
+ * @param cond is a test that raise an error or not
+ * @param err_mess an output message
+ */
+void error(bool cond, char *err_mess);
 
 /**
  * @brief Updates the "color_around" list with the adjacent colors recursively
