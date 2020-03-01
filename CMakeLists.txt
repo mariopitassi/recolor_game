@@ -31,8 +31,8 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DI
 
 include(CTest)
 enable_testing()
-set(cmds "test_game_fakhoun" "test_game_fakhoun" "test_game_fakhoun" "test_game_fakhoun" "test_game_mpitassi" "test_game_mpitassi" "test_game_mpitassi" "test_game_mpitassi" "test_game_mpitassi" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_mrousseau006" "test_game_mrousseau006" "test_game_mrousseau006" "test_game_mrousseau006" "test_game_mrousseau006""test_game_mrousseau006")
-set(args "game_nb_moves_max" "game_set_cell_init" "game_cell_current_color" "game_is_wrapping" "game_new" "set_max_moves" "copy" "height" "width" "game_play_one_move" "game_is_over" "game_restart" "game_new_ext" "game_load" "game_save" "game_new_empty" "game_delete" "game_nb_moves_cur" "game_new_empty_ext""find_min" "find_one")
+set(cmds "test_game_fakhoun" "test_game_fakhoun" "test_game_fakhoun" "test_game_fakhoun" "test_game_mpitassi" "test_game_mpitassi" "test_game_mpitassi" "test_game_mpitassi" "test_game_mpitassi" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_akasparian" "test_game_mrousseau006" "test_game_mrousseau006" "test_game_mrousseau006" "test_game_mrousseau006" "test_game_mrousseau006" "test_game_mrousseau006")
+set(args "game_nb_moves_max" "game_set_cell_init" "game_cell_current_color" "game_is_wrapping" "game_new" "set_max_moves" "copy" "height" "width" "game_play_one_move" "game_is_over" "game_restart" "game_new_ext" "game_load" "game_save" "game_new_empty" "game_delete" "game_nb_moves_cur" "game_new_empty_ext" "find_min" "find_one")
 foreach(i RANGE 20)
     list(GET cmds ${i} cmd)
     list(GET args ${i} arg)
