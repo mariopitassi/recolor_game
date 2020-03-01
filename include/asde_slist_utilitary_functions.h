@@ -1,6 +1,7 @@
 #ifndef ASDE_SLIST_UTILITARY_H
 #define ASDE_SLIST_UTILITARY_H
 
+#include "asde_slist.h"
 #include "game.h"
 #include "game_io.h"
 #include <stdbool.h>
