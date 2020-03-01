@@ -53,31 +53,15 @@ void print_nb_sol_in_file(uint nb_sol, const char *fname) {
   free(new_fname);
 }
 
-static void raise_usage(int code) {
-
-  switch (code) {
-  case 1: // Cas FIND_ONE
-    printf("FIND_ONE\n");
-    break;
-  case 2: // Cas NB_SOL
-    printf("NB_SOL \n");
-    break;
-  case 3: // Cas FIN_MIN
-    printf("FIND_MIN \n");
-    break;
-  default: // Cas défaut, mauvais argument
-    printf(
-        "Usage: ./recolor_solve FIND_ONE|NB_SOL|FIN_MIN <input> <output> \n");
-    break;
-  }
-
+static void raise_usage() {
+  printf("Usage: ./recolor_solve FIND_ONE|NB_SOL|FIN_MIN <input> <output> \n");
   exit(EXIT_FAILURE);
 }
 
 int main(int argc, char *argv[]) {
 
   if (argc != 4)
-    raise_usage(0);
+    raise_usage();
 
   game g = game_load(argv[2]);
 
@@ -89,34 +73,8 @@ int main(int argc, char *argv[]) {
     print_nb_sol_in_file(nb_sol(g), argv[3]);
   } else {
     game_delete(g);
-    raise_usage(0);
+    raise_usage();
   }
 
   game_delete(g);
 }
-
-/**
-int main(int argc, char *argv[]) {
-
-  if (argc == 1)
-    raise_usage(0);
-
-  if (strcmp(argv[1], "FIND_ONE") == 0) {
-
-    if (argc != 3)
-      raise_usage(1);
-
-  } else if (strcmp(argv[1], "NB_SOL") == 0) {
-
-    if (argc != 3)
-      raise_usage(2);
-
-  } else if (strcmp(argv[1], "FIN_MIN") == 0) {
-
-    if (argc != 3)
-      raise_usage(3);
-
-  } else
-    raise_usage(0);
-}
-**/
