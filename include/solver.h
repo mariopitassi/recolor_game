@@ -13,6 +13,11 @@ typedef struct solution {
   uint nb_moves; // Number of mobes / Length of tab
 } * sol;
 
+sol sol_alloc();
+
+color *moves_alloc(uint nb_moves);
+
+
 /**
  * @brief Error handler
  *

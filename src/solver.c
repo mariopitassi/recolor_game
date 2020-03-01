@@ -20,7 +20,7 @@ void error(bool cond, char *err_mess) {
  * NB: The tab is not allocated (look_for_sol will do it if a solution is found)
  * @return sol* a pointer to the allocated solution structure
  */
-static sol sol_alloc() {
+sol sol_alloc() {
   sol s = malloc(sizeof(struct solution));
   error(s == NULL, "Allocation went wrong\n");
   s->nb_moves = 0;
@@ -33,7 +33,7 @@ static sol sol_alloc() {
  * @param nb_moves number of moves to store
  * @return color* a pointer to the allocated tab
  */
-static color *moves_alloc(uint nb_moves) {
+color *moves_alloc(uint nb_moves) {
   color *moves = malloc(nb_moves * sizeof(color));
   error(moves == NULL, "Allocation went wrong\n");
   return moves;
