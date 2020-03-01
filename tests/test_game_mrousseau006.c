@@ -190,12 +190,11 @@ bool test_find_min() {
   uint coup_max = 12;
   // creating an array of solutions known
   color tabTest[] = {0,1,2,2,1,2,1,1,2,2,2,2};
-  sol stest = sol_alloc();
-  stest->moves = moves_alloc(coup_max);
+  
   // creating the game that we want to test
   game game_test = game_new_ext(3,4,tabTest,12,false);
   // finding the minimal solution, with this game there are only 2 solution with different sizes
-  stest = find_min(game_test);
+  sol stest = find_min(game_test);
   // giving the minimal solution
   color Solmin[] = {1,2};
   uint Nb_min = 2;
@@ -222,12 +221,10 @@ bool test_find_one(){
   uint coup_max = 12;
   // creating an array of solutions known
   color tabTest[] = {0,1,2,2,1,2,1,1,2,2,2,2};
-  sol stest = sol_alloc();
-  stest->moves = moves_alloc(coup_max);
   // creating the game with the array of testing  
   game game_test = game_new_ext(3,4,tabTest,12,false);
   // finding a solution to test
-  stest = find_one(game_test);
+  sol stest = find_one(game_test);
   // testing the solution
   for(int i = 0 ; i < stest->nb_moves;i++){
     game_play_one_move(game_test, stest->moves[i]);
