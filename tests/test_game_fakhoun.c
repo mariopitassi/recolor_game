@@ -190,7 +190,7 @@ bool test_nb_sol() {
   return true;
 }
 
-/* ********** COL_AROUND ********** */
+/* ********** COL_AROUND TEST ********** */
 
 bool test_col_around() {
   color moves[] = {1, 2, 3, 4, 5, 6};
@@ -242,6 +242,29 @@ bool test_col_around() {
   return true;
 }
 
+/* ********** NB_COLORS TEST ********** */
+
+bool test_nb_colors() {
+  color moves[] = {1, 2, 3, 4, 5, 6};
+
+  game g = game_load("data/test_game_0.rec");
+  uint nbc = nb_colors(g, moves, 0);
+  if (test(nbc != 1, "Wrong number of colors for test_game_0\n", g))
+    return false;
+  game_delete(g);
+
+  game g2 = game_load("data/test_game_1sol.rec");
+  for (uint move = 0; move < 7; move++) {
+    nbc = nb_colors(g2, moves, move);
+    if (test(nbc != (7 - move), "Wrong number of colors for test_game_1sol\n",
+             g2))
+      return false;
+  }
+  game_delete(g2);
+
+  return true;
+}
+
 /* ********** MAIN ROUTINE ********** */
 
 int main(int argc, char *argv[]) {
@@ -254,6 +277,7 @@ int main(int argc, char *argv[]) {
   assert(test_game_is_wrapping());
   assert(test_nb_sol());
   assert(test_col_around());
+  assert(test_nb_colors());
 
   // print test result
   fprintf(stderr, "Test fakhoun finished: SUCCESS\n");

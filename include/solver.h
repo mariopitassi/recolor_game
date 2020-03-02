@@ -28,21 +28,6 @@ void error(bool cond, char *err_mess);
 void free_sol(sol s);
 
 /**
- * @brief Print and free a solution in a file
- * NB: print "NO SOLUTION\n" if there is no solution
- * @param solution pointer to a solution
- * @param fname pointer to a file name
- */
-void print_sol_in_file(sol solution, const char *fname);
-
-/**
- * @brief print the number of solutions in a file
- * @param nb_sol the number of solutions
- * @param fname pointer to a file name
- */
-void print_nb_sol_in_file(uint nb_sol, const char *fname);
-
-/**
  * @brief Play a hit board
  *
  * @param g a game instance
