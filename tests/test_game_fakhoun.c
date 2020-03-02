@@ -1,3 +1,5 @@
+#include "asde_slist.h"
+#include "asde_slist_utilitary_functions.h"
 #include "game.h"
 #include "game_io.h"
 #include "solver.h"
@@ -152,18 +154,18 @@ bool test_game_is_wrapping() {
 }
 
 /* ********** NB_SOL TEST ********** */
+
 bool test_nb_sol() {
   game g = game_load("data/test_game_24sol.rec");
   uint nb_solution = nb_sol(g);
   if (test(nb_solution != 24,
-           "Error : Nombre de solution différent de 24 pour test_game_446N\n",
-           g))
+           "Error : Nb of solutions != 24 for test_game_24sol\n", g))
     return false;
 
   game_set_max_moves(g, 3);
   nb_solution = nb_sol(g);
-  if (test(nb_solution != 0, "Error : Nombre de solution différent de 0 pour "
-                             "jeu impossible à gagner\n",
+  if (test(nb_solution != 0, "Error : Nb of solution != 0 for "
+                             "an impossible game to win\n",
            g))
     return false;
 
@@ -172,20 +174,70 @@ bool test_nb_sol() {
   game g2 = game_load("data/test_game_1sol.rec");
   nb_solution = nb_sol(g2);
   if (test(nb_solution != 1,
-           "Error : Nombre de solution différent de 1 pour test_game_448N\n",
-           g2))
+           "Error : Nb of solutions != 1 for test_game_1sol\n", g2))
     return false;
 
   game_delete(g2);
 
   game g3 = game_load("data/test_game_0.rec");
   nb_solution = nb_sol(g3);
-  if (test(nb_solution != 0,
-           "Error : Nombre de solution différent de 0 pour test_game_won\n",
+  if (test(nb_solution != 0, "Error : Nb of solution != 0 for test_game_0\n",
            g3))
     return false;
 
   game_delete(g3);
+
+  return true;
+}
+
+/* ********** COL_AROUND ********** */
+
+bool test_col_around() {
+  color moves[] = {1, 2, 3, 4, 5, 6};
+
+  game g = game_load("data/test_game_0.rec");
+  SList cList = col_around(g, moves, 0);
+  if (test(!asde_slist_isEmpty(cList),
+           "List not empty on an already won game\n", g))
+    return false;
+  cList = asde_slist_delete_list(cList);
+  game_delete(g);
+
+  game g2 = game_load("data/test_game_1sol.rec");
+  for (uint move_nb = 0; move_nb < 6; move_nb++) {
+    cList = col_around(g2, moves, move_nb);
+    if (test(asde_slist_data(cList) != move_nb + 1 ||
+                 !asde_slist_isEmpty(asde_slist_next(cList)),
+             "Wrong color in the list or list longer than expected\n", g2))
+      return false;
+    cList = asde_slist_delete_list(cList);
+  }
+  game_delete(g2);
+
+  game g3 = game_load("data/test_game_24sol.rec");
+  for (uint move_nb = 0; move_nb < 4; move_nb++) {
+    cList = col_around(g3, moves, move_nb);
+    while (!asde_slist_isEmpty(cList)) {
+      if (test(!(asde_slist_data(cList) <= 4 &&
+                 asde_slist_data(cList) > move_nb),
+               "Wrong color in the list\n", g3))
+        return false;
+      cList = asde_slist_delete_first(cList);
+    }
+  }
+  game_delete(g3);
+
+  game g4 = game_load("data/horizontal_game2S.rec");
+  cList = col_around(g4, moves, 0);
+  uint counter[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  while (!asde_slist_isEmpty(cList)) {
+    counter[asde_slist_data(cList)] += 1;
+    if (test(counter[asde_slist_data(cList)] > 1,
+             "Same color multiple times in the list\n", g4))
+      return false;
+    cList = asde_slist_delete_first(cList);
+  }
+  game_delete(g4);
 
   return true;
 }
@@ -201,6 +253,7 @@ int main(int argc, char *argv[]) {
   assert(test_game_cell_current_color());
   assert(test_game_is_wrapping());
   assert(test_nb_sol());
+  assert(test_col_around());
 
   // print test result
   fprintf(stderr, "Test fakhoun finished: SUCCESS\n");

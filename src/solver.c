@@ -41,18 +41,65 @@ static color *moves_alloc(uint nb_moves) {
 
 void free_sol(sol s) {
   if (s != NULL) {
-    if (s->moves != NULL){
+    if (s->moves != NULL)
       free(s->moves);
-    }
     free(s);
   }
 }
 
+/**
+ * @brief Add an extension to a file name
+ * @param fname a pointer to a file name
+ * @param extension pointer to a string
+ * @return the extended file name
+ */
+static char *extend_fname(const char *fname, const char *extension) {
+  char *new_fname = malloc(strlen(fname) + strlen(extension) +
+                           1);  // make space for the new string
+  strcpy(new_fname, fname);     // copy fname into the new_fname
+  strcat(new_fname, extension); // add the extension
+  return new_fname;
+}
+
+void print_sol_in_file(sol solution, const char *fname) {
+  error(solution == NULL || fname == NULL, "Bad pointer\n");
+
+  char *new_fname = extend_fname(fname, ".sol");
+
+  FILE *f = fopen(new_fname, "w");
+  error(f == NULL, "Allocation pb\n");
+
+  if (solution->nb_moves > 0) { // Si il y a une solution on print
+    for (uint i = 0; i < solution->nb_moves; i++) {
+      (i == 0) ? fprintf(f, "%u", solution->moves[i])
+               : fprintf(f, " %u", solution->moves[i]);
+    }
+  } else {
+    fprintf(f, "NO SOLUTION\n");
+  }
+
+  fclose(f);
+  free(new_fname);
+}
+
+void print_nb_sol_in_file(uint nb_sol, const char *fname) {
+  error(fname == NULL, "Bad pointer\n");
+
+  char *new_fname = extend_fname(fname, ".nbsol");
+
+  FILE *f = fopen(new_fname, "w");
+  error(f == NULL, "Allocation pb\n");
+
+  fprintf(f, "NB_SOL = %u\n", nb_sol);
+
+  fclose(f);
+  free(new_fname);
+}
+
 void game_play_moves(game g, color *moves, uint nb_moves) {
   error(g == NULL || moves == NULL, "Invalid pointer\n");
-  for (uint i = 0; i < nb_moves; i++) {
+  for (uint i = 0; i < nb_moves; i++)
     game_play_one_move(g, moves[i]);
-  }
 }
 
 /**
@@ -66,9 +113,8 @@ void game_play_moves(game g, color *moves, uint nb_moves) {
 static color *copy_arr(color *arr, uint len) {
   error(arr == NULL, "Invalid pointer\n");
   color *copy_arr = malloc(len * sizeof(color));
-  for (int i = 0; i < len; i++) {
+  for (int i = 0; i < len; i++)
     copy_arr[i] = arr[i];
-  }
   return copy_arr;
 }
 
@@ -194,10 +240,10 @@ static void look_for_sol(cgame g, color *moves, SList c_around, uint nb_moves,
   if (moves_left < nb_col - 1)
     return; // We stop because it's useless to play (sure to lose)
 
-  if (nb_moves == nb_moves_max || nb_col == 1) { // Solution found
+  if (nb_col == 1) { // Solution found
     if (nb_moves > 0)
       *nb_sol += 1; // nb_moves > 0 --> if game is already won before we start
-                    // to play nb_sol stay at 0
+                    // to play, nb_sol stay at 0
     if (!look_nb_sol && nb_moves > 0) {
       s->moves = copy_arr(moves, nb_moves);
       s->nb_moves = nb_moves;
