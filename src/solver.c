@@ -41,8 +41,9 @@ static color *moves_alloc(uint nb_moves) {
 
 void free_sol(sol s) {
   if (s != NULL) {
-    if (s->moves != NULL)
+    if (s->moves != NULL){
       free(s->moves);
+    }
     free(s);
   }
 }

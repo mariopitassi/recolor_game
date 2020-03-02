@@ -30,8 +30,7 @@ bool errorJEU(char *err_mess, game g) {
 }
 bool errorSOL(char *err_mess, game g, sol SOL) {
   fprintf(stderr, "Error: %s \n\n", err_mess);
-  free(SOL->moves);
-  free(SOL);
+  free_sol(SOL);
   game_delete(g);
   return false;
 }
@@ -40,19 +39,19 @@ bool test_game_new_empty() {
   game g = game_new_empty();
 
   if (g == NULL) {
-    return errorJEU("invalid pointer", g);
+    return errorJEU("Error: invalid pointer", g);
   }
   // checking if all the cells have been initialized to 0
   for (int i = 0; i <= SIZE - 1; i++) {
     for (int j = 0; j <= SIZE - 1; j++) {
       if (game_cell_current_color(g, j, i) != 0) {
-        return errorJEU("Error:le tableau n'est pas initialisé à RED", g);
+        return errorJEU("Error: The array isn't initialized to 0", g);
       }
     }
   }
   // checking if the max nb moves has been initialized to 0
   if (game_nb_moves_max(g) != 0) {
-    return errorJEU("Nombre de moves max incorrect", g);
+    return errorJEU("Error :Number max move is wrong", g);
   }
   // free the created game
   game_delete(g);
@@ -75,41 +74,37 @@ bool test_game_new_empty_ext() {
   // initializing a new game for the test with the testing parameters
   game g = game_new_empty_ext(width, height, wrapping);
   if (g == NULL) {
-    return errorJEU(" Erreur: le tableau du jeu n'est pas initialisé", g);
+    return errorJEU(" Error: the game isn't initialized", g);
   }
   // checking if the game width has been correctly initialized
   if (game_width(g) != width) {
     return errorJEU(
-        "Erreur, la largeur du tableau du jeu n'a pas été initialisé "
-        "correctement",
+        "Error : Game width isn't initialized ",
         g);
   }
   // checking if the game height has been correctly initialized
   if (game_height(g) != height) {
     return errorJEU(
-        "Erreur, la largeur du tableau du jeu n'a pas été initialisé "
-        "correctement",
+        "Error: Game height isn't initialized ",
         g);
   }
   // checking if all the cells have been initialized to 0
   for (int y = 0; y < game_height(g); y++) {
     for (int x = 0; x < game_width(g); x++) {
       if (game_cell_current_color(g, x, y) != 0) {
-        return errorJEU("Error:le tableau n'est pas initialisé à 0", g);
+        return errorJEU("Error: the array isn't initialized to 0", g);
       }
     }
   }
   // checking if the max nb moves has been initialized to 0
   if (game_nb_moves_max(g) != 0) {
-    return errorJEU("Erreur, le nombres de moves max n'a pas été initialisé "
-                    "correctement à 0",
+    return errorJEU("Error : Number max move isn't initialized to 0",
                     g);
   }
   // checking if the wrapping bool has been correctly initialized
   if (game_is_wrapping(g) != wrapping) {
     return errorJEU(
-        "Erreur, le booléen determinant si le jeu est wrapping ou non "
-        "n'a pas été initialisé correctement",
+        "Error: Wrapping bool isn't initialized correctly",
         g);
   }
   // free the created game
@@ -131,7 +126,7 @@ bool test_game_delete() {
   game g = game_new(tab, coups_max);
   // checking if the game exists and has been correctly initialized
   if (g == NULL) {
-    return errorJEU("Error:le tableau du jeu n'est pas intialisé", g);
+    return errorJEU("Error: The game point isn't initialized", g);
   }
   // free the created game
   game_delete(g);
@@ -156,11 +151,11 @@ bool test_game_nb_moves_cur() {
   game g = game_new(tab, coups_max);
 
   if (g == NULL) {
-    return errorJEU("Error: le tableau du jeu n'est pas intialisé", g);
+    return errorJEU("Error: The game pointer isn't initialized", g);
   }
   // checking current nb moves = 0 at the beggining of the game
   if (game_nb_moves_cur(g) != 0) {
-    return errorJEU("nbr de moves actuel non initialisé à 0", g);
+    return errorJEU("Error : Number current moves isn't initialized to 0", g);
   }
   // playing random moves to increment current nb moves
   for (int i = 0; i <= coups_max;) {
@@ -170,7 +165,7 @@ bool test_game_nb_moves_cur() {
     // cheking if the current nb moves is correctly incremented after playing a
     // move
     if (game_nb_moves_cur(g) != i) {
-      return errorJEU("le nbr de coups actuel n'a pas été incrémenté", g);
+      return errorJEU("Error: Number current moves hasn't been incremented by 1", g);
     }
   }
   // restart the game
@@ -179,7 +174,7 @@ bool test_game_nb_moves_cur() {
   // checking current mb moves = 0 after restarting the game
   if (game_nb_moves_cur(g) != 0) {
     return errorJEU(
-        "le nbr de coups actuel n'a pas été réinitialisé avec le reset", g);
+        "Error : number current moves hasn't been reset", g);
   }
   // free the created game
   game_delete(g);
@@ -204,26 +199,24 @@ bool test_find_min() {
   // compare the number of moves of the solution we found with the real min
   // solution
   if (stest->nb_moves != Nb_min) {
-    return errorSOL("le nbr de moves de la sol ne correspond pas", game_test,
+    return errorSOL("Error: The number of moves of the solution found is wrong", game_test,
                     stest);
   }
   // compare the solution we found witht he real solution
   for (int i = 0; i < stest->nb_moves; i++) {
     if (stest->moves[i] != Solmin[i]) {
-      return errorSOL("La solution minimale de correspond pas", game_test,
+      return errorSOL("Error: The minimal solution is wrong", game_test,
                       stest);
     }
   }
 
-  free(stest->moves);
-  free(stest);
+  free_sol(stest);
   game_delete(game_test);
 
   return true;
 }
 /* test de find one */
 bool test_find_one() {
-  // uint coup_max = 12;
   // creating an array of solutions known
   color tabTest[] = {0, 1, 2, 2, 1, 2, 1, 1, 2, 2, 2, 2};
   // creating the game with the array of testing
@@ -236,11 +229,25 @@ bool test_find_one() {
   }
   // verifying that the game is over after playing the solution we found
   if (!game_is_over(game_test)) {
-    return errorSOL(" la solution renvoyé n'est pas une solution du jeu",
+    return errorSOL("Error: the solution returned isn't a solution for the game",
                     game_test, stest);
   }
-  free(stest->moves);
-  free(stest);
+  free_sol(stest);
+  game_delete(game_test);
+  return true;
+}
+/* Test free_sol */
+
+bool test_free_sol() {
+   // creating an array of solutions known
+  color tabTest[] = {0, 1, 2, 2, 1, 2, 1, 1, 2, 2, 2, 2};
+  // creating the game with the array of testing
+  game game_test = game_new_ext(3, 4, tabTest, 12, false);
+  // finding a solution to test
+  sol stest = find_one(game_test);
+
+  free_sol(stest);
+
   game_delete(game_test);
   return true;
 }
@@ -270,7 +277,8 @@ int main(int argc, char *argv[]) {
     ok = test_find_min();
   } else if (strcmp("find_one", argv[1]) == 0) {
     ok = test_find_one();
-
+  } else if (strcmp("free_sol", argv[1]) == 0) {
+    ok = test_free_sol();
   } else {
     fprintf(stderr, "Error: test \"%s\" not found!\n", argv[1]);
     exit(EXIT_FAILURE);
