@@ -72,7 +72,7 @@ sol find_min(cgame g);
  * @param g a game instance
  * @return sol structure with all params initialized
  */
-sol find_one(cgame g);
+sol find_one(cgame g, uint nb_moves_max);
 
 /**
  * @brief Get the number of solutions from a a game instance

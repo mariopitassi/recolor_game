@@ -214,7 +214,7 @@ bool test_find_one() {
   // creating the game with the array of testing
   game game_test = game_new_ext(3, 4, tabTest, 12, false);
   // finding a solution to test
-  sol stest = find_one(game_test);
+  sol stest = find_one(game_test, 12);
   // testing the solution
   for (int i = 0; i < stest->nb_moves; i++) {
     game_play_one_move(game_test, stest->moves[i]);
@@ -237,7 +237,7 @@ bool test_free_sol() {
   // creating the game with the array of testing
   game game_test = game_new_ext(3, 4, tabTest, 12, false);
   // finding a solution to test
-  sol stest = find_one(game_test);
+  sol stest = find_one(game_test, 12);
 
   free_sol(stest);
 
