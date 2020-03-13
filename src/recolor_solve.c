@@ -79,8 +79,9 @@ int main(int argc, char *argv[]) {
   game g = game_load(argv[2]);
 
   if (strcmp(argv[1], "FIND_ONE") == 0 || strcmp(argv[1], "FIND_MIN") == 0) {
-    sol solution =
-        (strcmp(argv[1], "FIND_ONE") == 0) ? find_one(g) : find_min(g);
+    sol solution = (strcmp(argv[1], "FIND_ONE") == 0)
+                       ? find_one(g, game_nb_moves_max(g))
+                       : find_min(g);
     print_sol_in_file(solution, argv[3]);
     free_sol(solution);
   } else if (strcmp(argv[1], "NB_SOL") == 0) {

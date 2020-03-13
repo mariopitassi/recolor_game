@@ -108,15 +108,17 @@ static void around(game g, uint x, uint y, color oldcolor, SList color_around,
                    uint *counter) {
 
   color current_cell = game_cell_current_color(g, x, y);
+  uint width = game_width(g);
+  uint height = game_height(g);
 
   if (current_cell == oldcolor) {
     game_set_cell_init(
         g, x, y,
         99); // Initialize the cell with 99 to not have infinite recursivity
              // 99 --> unlikely to have a game with 100 colors
-    if (x < game_width(g) - 1)
+    if (x < width - 1)
       around(g, x + 1, y, oldcolor, color_around, counter);
-    if (y < game_height(g) - 1)
+    if (y < height - 1)
       around(g, x, y + 1, oldcolor, color_around, counter);
     if (x > 0)
       around(g, x - 1, y, oldcolor, color_around, counter);
@@ -124,14 +126,14 @@ static void around(game g, uint x, uint y, color oldcolor, SList color_around,
       around(g, x, y - 1, oldcolor, color_around, counter);
 
     if (game_is_wrapping(g)) {
-      if (x == game_width(g) - 1)
-        around(g, (x + 1 - game_width(g)), y, oldcolor, color_around, counter);
-      if (y == game_height(g) - 1)
-        around(g, x, (y + 1 - game_height(g)), oldcolor, color_around, counter);
+      if (x == width - 1)
+        around(g, 0, y, oldcolor, color_around, counter);
+      if (y == height - 1)
+        around(g, x, 0, oldcolor, color_around, counter);
       if (x == 0)
-        around(g, (game_width(g) - 1), y, oldcolor, color_around, counter);
+        around(g, width - 1, y, oldcolor, color_around, counter);
       if (y == 0)
-        around(g, x, (game_height(g) - 1), oldcolor, color_around, counter);
+        around(g, x, height - 1, oldcolor, color_around, counter);
     }
   }
   // Sorting the list
@@ -218,34 +220,34 @@ static void look_for_sol(cgame g, color *moves, SList c_around, uint nb_moves,
 
 sol find_min(cgame g) {
   error(g == NULL, "Invalid pointer\n");
-  sol s = sol_alloc();
-  color move_min[] = {0};
-  uint nb_moves_min = nb_colors(g, move_min, 0) -
-                      1; // (Number of game colors - 1) before playing
-  for (uint nb_moves = nb_moves_min; nb_moves <= game_nb_moves_max(g);
-       nb_moves++) {
-    color *moves = moves_alloc(nb_moves);
-    SList c_around = col_around(g, moves, 0);
-    uint nb_sol = 0;
-    bool look_nb_sol = false;
-    look_for_sol(g, moves, c_around, 0, nb_moves, &nb_sol, s, look_nb_sol);
-    asde_slist_delete_list(c_around);
-    free(moves);
-    if (nb_sol > 0)
-      return s;
+  color moves[] = {0};
+  uint nb_moves_min = nb_colors(g, moves, 0) - 1;
+  sol s = find_one(g, game_nb_moves_max(g));
+  if (s->nb_moves > nb_moves_min) {  // Solution may be better
+    uint nb_moves = s->nb_moves - 1; // Try with smaller nb_moves
+    while (true) {
+      sol s_tmp = find_one(g, nb_moves);
+      if (s_tmp->nb_moves > 0) { // Better solution found
+        free_sol(s);
+        s = s_tmp; // Update solution
+        nb_moves = s->nb_moves - 1;
+      } else { // No better solution
+        free_sol(s_tmp);
+        break;
+      }
+    }
   }
   return s;
 }
 
-sol find_one(cgame g) {
+sol find_one(cgame g, uint nb_moves_max) {
   error(g == NULL, "Invalid pointer\n");
   sol s = sol_alloc();
-  color *moves = moves_alloc(game_nb_moves_max(g));
+  color *moves = moves_alloc(nb_moves_max);
   SList c_around = col_around(g, moves, 0);
   uint nb_sol = 0;
   bool look_nb_sol = false;
-  look_for_sol(g, moves, c_around, 0, game_nb_moves_max(g), &nb_sol, s,
-               look_nb_sol);
+  look_for_sol(g, moves, c_around, 0, nb_moves_max, &nb_sol, s, look_nb_sol);
   asde_slist_delete_list(c_around);
   free(moves);
   return s;

@@ -70,9 +70,10 @@ sol find_min(cgame g);
  * @brief Get the first sequence of solution that is found
  *
  * @param g a game instance
+ * @param nb_moves_max the maximum length of the sequence
  * @return sol structure with all params initialized
  */
-sol find_one(cgame g);
+sol find_one(cgame g, uint nb_moves_max);
 
 /**
  * @brief Get the number of solutions from a a game instance

@@ -161,9 +161,9 @@ void static floodFill(game g, uint x, uint y, color oldcolor, color newcolor) {
     // if game_is_wrapping, recursivity on opposite edge when an edge is reached
     if (game_is_wrapping(g)) {
       if (x == g->size_x - 1)
-        floodFill(g, (x + 1 - g->size_x), y, oldcolor, newcolor);
+        floodFill(g, 0, y, oldcolor, newcolor);
       if (y == g->size_y - 1)
-        floodFill(g, x, (y + 1 - g->size_y), oldcolor, newcolor);
+        floodFill(g, x, 0, oldcolor, newcolor);
       if (x == 0)
         floodFill(g, (g->size_x - 1), y, oldcolor, newcolor);
       if (y == 0)
