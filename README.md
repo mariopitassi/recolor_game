@@ -12,6 +12,7 @@ Prerequisites :
 - GCC (debug)
 - Make, CMake & CTest (processes, build & test)
 - Clang-format (linter of code)
+- C Libraries : SDL2, SDL2_image, SDL2_ttf ([install sdl2](https://wiki.libsdl.org/Installation#Linux.2FUnix), [install sdl_ttf](https://www.libsdl.org/projects/SDL_ttf/), [install sdl_img](https://www.libsdl.org/projects/SDL_image/]))
 
 To download the project you need to run the command : `git clone https://services.emi.u-bordeaux.fr/projet/git/recolor-tdm1-c`
 
@@ -25,7 +26,7 @@ There are 7 use cases :
 - `coverage` : check coverage of code using CMake
 - `switch` : switch between V1 and V2 of recolor using git branch
 - `memcheck` : check memory leak on executables
-- `format` : format all _.h et _.c with clang-format
+- `format` : format all .h and .c files with clang-format
 
 ## Architecture
 
@@ -35,25 +36,36 @@ There are 7 use cases :
 ├── .gitignore
 ├── CMakeLists.txt
 ├── README.md
+├── helper.sh
+├── CMakeModules
+│   ├── FindSDL2.cmake
+│   ├── FindSDL2_gfx.cmake
+│   ├── FindSDL2_image.cmake
+│   └── FindSDL2_ttf.cmake
 ├── data
 │   ├── default_game.rec
 │   ├── default_game.sol
 │   ├── horitzontal_game2N.sol
 │   ├── horitzontal_game2S.sol
 │   ├── horizontal_game2N.rec
-│   └── horizontal_game2S.rec
-├── helper.sh
+│   ├── horizontal_game2S.rec
+│   ├── test_game_0.rec
+│   ├── test_game_1sol.rec
+│   └── test_game_24sol.rec
 ├── include
 │   ├── asde_slist.h
 │   ├── asde_slist_utilitary_functions.h
 │   ├── game.h
 │   ├── game_io.h
+│   ├── gui.h
 │   └── solver.h
 ├── src
 │   ├── asde_slist.c
 │   ├── asde_slist_utilitary_functions.c
 │   ├── game.c
 │   ├── game_io.c
+│   ├── gui.c
+│   ├── recolor_sdl.c
 │   ├── recolor_solve.c
 │   ├── recolor_text.c
 │   └── solver.c
