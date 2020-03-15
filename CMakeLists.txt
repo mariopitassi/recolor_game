@@ -6,12 +6,23 @@ set(CMAKE_C_FLAGS "-std=c99 -g -Wall --coverage")
 set(CMAKE_C_FLAGS_DEBUG "-g -DDEBUG --coverage")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
+# Import of SDL2, SDL2_IMG, SDL2_TTF librairies
+include(FindPkgConfig)
+pkg_search_module(SDL2 REQUIRED sdl2)
+pkg_search_module(SDL2_IMG REQUIRED SDL2_image)
+pkg_search_module(SDL2_TTF REQUIRED SDL2_ttf)
+
+set(SDL2_ALL_LIBS ${SDL2_LIBRARIES} ${SDL2_IMG_LIBRARIES} ${SDL2_TTF_LIBRARIES} -L/usr/local/lib)
+set(SDL2_ALL_INC ${SDL2_INCLUDE_DIRS} ${SDL2_IMG_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS} -I/usr/local/include/SDL2)
+
+include_directories(${SDL2_ALL_INC})
 include_directories(include)
 include_directories(src)
 include_directories(tests)
 
 add_executable(recolor_text src/recolor_text.c)
 add_executable(recolor_solve src/recolor_solve.c)
+add_executable(recolor_sdl src/recolor_sdl.c)
 add_executable(test_game_fakhoun tests/test_game_fakhoun.c)
 add_executable(test_game_mpitassi tests/test_game_mpitassi.c)
 add_executable(test_game_akasparian tests/test_game_akasparian.c)
@@ -19,9 +30,11 @@ add_executable(test_game_mrousseau006 tests/test_game_mrousseau006.c)
 
 add_library(game src/game_io.c src/game.c)
 add_library(solver src/solver.c src/asde_slist.c src/asde_slist_utilitary_functions.c)
+add_library(gui src/gui.c)
 
 target_link_libraries(recolor_text game)
 target_link_libraries(recolor_solve game solver)
+target_link_libraries(recolor_sdl gui ${SDL2_ALL_LIBS} m)
 target_link_libraries(test_game_fakhoun game solver)
 target_link_libraries(test_game_mpitassi game solver)
 target_link_libraries(test_game_akasparian game solver)
