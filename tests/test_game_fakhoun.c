@@ -164,8 +164,9 @@ bool test_nb_sol() {
 
   game_set_max_moves(g, 3);
   nb_solution = nb_sol(g);
-  if (test(nb_solution != 0, "Error : Nb of solution != 0 for "
-                             "an impossible game to win\n",
+  if (test(nb_solution != 0,
+           "Error : Nb of solution != 0 for "
+           "an impossible game to win\n",
            g))
     return false;
 

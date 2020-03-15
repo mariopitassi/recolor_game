@@ -1,11 +1,11 @@
 // SDL2 Demo by aurelien.esnard@u-bordeaux.fr
 
+#include "gui.h"
 #include <SDL.h>
 #include <SDL_image.h> // required to load transparent texture from PNG
 #include <SDL_ttf.h>   // required to use TTF fonts
-#include <stdio.h>
 #include <stdbool.h>
-#include "gui.h"
+#include <stdio.h>
 
 /* **************************************************************** */
 

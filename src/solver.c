@@ -94,16 +94,16 @@ uint nb_colors(cgame g, color *moves, uint nb_moves) {
 }
 
 /**
-* @brief Updates the "color_around" list with the adjacent colors recursively
-* NB: The list is sorted
-*
-* @param g a game instance
-* @param x a position on the abscissa axis
-* @param y a position on the ordinate axis
-* @param oldcolor color to update
-* @param color_around list of color uptated...
-* @param counter represents the number of times a color is in the neighborhood
-*/
+ * @brief Updates the "color_around" list with the adjacent colors recursively
+ * NB: The list is sorted
+ *
+ * @param g a game instance
+ * @param x a position on the abscissa axis
+ * @param y a position on the ordinate axis
+ * @param oldcolor color to update
+ * @param color_around list of color uptated...
+ * @param counter represents the number of times a color is in the neighborhood
+ */
 static void around(game g, uint x, uint y, color oldcolor, SList color_around,
                    uint *counter) {
 
