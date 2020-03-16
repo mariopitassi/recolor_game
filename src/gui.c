@@ -20,7 +20,6 @@ typedef struct Gui_color {
   SDL_Color grid_bg;
   SDL_Color grid_line;
   SDL_Color *cells;
-  uint cells_nb;
 } Gui_color;
 
 struct Env_t {
@@ -88,7 +87,6 @@ static Gui_color *init_colors(game g) {
   }
 
   gui->cells = cells;
-  gui->cells_nb = nb_col;
 
   return gui;
 }
