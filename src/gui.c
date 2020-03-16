@@ -213,7 +213,7 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
     uint x = e->button.x / (env->cell_len * env->cell_ratio);
     uint y = e->button.y / (env->cell_len * env->cell_ratio);
 
-    if (x >= 0 && x <= env->grid_width && y >= 0 && y <= env->grid_height) {
+    if (x >= 0 && x < env->grid_width && y >= 0 && y < env->grid_height) {
 
       color c_cur = game_cell_current_color(env->game, x, y);
 
