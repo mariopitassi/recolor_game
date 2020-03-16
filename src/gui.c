@@ -179,7 +179,7 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   env->grid_height = game_height(g);
 
   env->cell_ratio = 0.5;
-  env->cell_len = (env->win_width > env->win_width)
+  env->cell_len = (env->win_width > env->win_height)
                       ? (env->win_height / env->grid_height)
                       : (env->win_width / env->grid_width);
 
@@ -223,7 +223,7 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
       } else if (game_is_over(env->game)) {
         PRINT("WINNNNNNN !\n");
       } else {
-        PRINT("RECOMMENCE....\n");
+        PRINT("C'EST REPARTI POUR UNE NOUVELLE PARTIE.... RECOMMENCE....\n");
         game_restart(env->game);
       }
     }
