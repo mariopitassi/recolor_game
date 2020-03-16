@@ -34,7 +34,7 @@ add_library(gui src/gui.c)
 
 target_link_libraries(recolor_text game)
 target_link_libraries(recolor_solve game solver)
-target_link_libraries(recolor_sdl gui ${SDL2_ALL_LIBS} m)
+target_link_libraries(recolor_sdl game solver gui ${SDL2_ALL_LIBS} m)
 target_link_libraries(test_game_fakhoun game solver)
 target_link_libraries(test_game_mpitassi game solver)
 target_link_libraries(test_game_akasparian game solver)
