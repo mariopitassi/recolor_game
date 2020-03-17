@@ -106,26 +106,36 @@ static void draw_cell(SDL_Window *win, SDL_Renderer *ren, Env *env, uint x,
                       uint y, color c) {
 
   uint len = env->cell_len * env->cell_ratio;
-  SDL_Rect cell = {x, y, len, len};
+  x *= env->cell_len * env->cell_ratio;
+  y *= env->cell_len * env->cell_ratio;
 
-  SDL_SetRenderDrawColor(ren, env->colors->cells[c].r, env->colors->cells[c].g,
-                         env->colors->cells[c].b, env->colors->cells[c].a);
+  SDL_Rect cell = {x, y, len, len};
+  SDL_Color color = env->colors->cells[c];
+
+  SDL_SetRenderDrawColor(ren, color.r, color.g, color.b, color.a);
   SDL_RenderFillRect(ren, &cell);
 }
 
+/**
+ * @brief Draw or redraw grid (lines + columns + cells) of the game.
+ *
+ * @param win pointer to the window context
+ * @param ren pointer to the renderer
+ * @param env pointer to the environment
+ */
 static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env) {
 
   SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
   SDL_RenderClear(ren);
 
+  // TODO: Create a system to do responsive grid
   if (env->win_width > env->win_height) {
 
     // Cells drawing
     for (uint x = 0; x < env->grid_width; x++) {
       for (uint y = 0; y < env->grid_height; y++) {
         color c = game_cell_current_color(env->game, x, y);
-        draw_cell(win, ren, env, x * env->cell_len * env->cell_ratio,
-                  y * env->cell_len * env->cell_ratio, c);
+        draw_cell(win, ren, env, x, y, c);
       }
     }
 
@@ -178,7 +188,8 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   env->grid_width = game_width(g);
   env->grid_height = game_height(g);
 
-  env->cell_ratio = 0.5;
+  // FIXME: cell_ratio double division to uint => could cause graphic bug
+  env->cell_ratio = 0.8;
   env->cell_len = (env->win_width > env->win_height)
                       ? (env->win_height / env->grid_height)
                       : (env->win_width / env->grid_width);
@@ -219,17 +230,17 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
 
       if (game_nb_moves_cur(env->game) < game_nb_moves_max(env->game)) {
         game_play_one_move(env->game, c_cur);
-        PRINT("CONTINUE ! Current coups : %d \n", game_nb_moves_cur(env->game));
       } else if (game_is_over(env->game)) {
+
+        // TODO: Create a winning page with button restart or quit
         PRINT("WINNNNNNN !\n");
       } else {
-        PRINT("C'EST REPARTI POUR UNE NOUVELLE PARTIE.... RECOMMENCE....\n");
+
+        // TODO: Create page with button restart or quit
+        PRINT("NOUVELLE PARTIE... RECOMMENCE....\n");
         game_restart(env->game);
       }
     }
-
-    // PRINT("Coordonnées de la grille de ce clic : (%d,%d)\n", x, y);
-    // PRINT("Coordonnées du clic : (%d,%d) \n", e->button.x, e->button.y);
   }
 
   return false;
