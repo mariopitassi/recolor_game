@@ -28,7 +28,7 @@ add_executable(test_game_mpitassi tests/test_game_mpitassi.c)
 add_executable(test_game_akasparian tests/test_game_akasparian.c)
 add_executable(test_game_mrousseau006 tests/test_game_mrousseau006.c)
 
-add_library(game src/game_io.c src/game.c)
+add_library(game src/game_io.c src/game.c src/game_rand.c)
 add_library(solver src/solver.c src/asde_slist.c src/asde_slist_utilitary_functions.c)
 add_library(gui src/gui.c)
 

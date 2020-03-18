@@ -165,7 +165,7 @@ static int *read_infos(char *fname, long *psize) {
 game game_load(char *filename) {
 
   FILE *f = fopen(filename, "r");
-  error(f == NULL, "Bad pointer");
+  error(f == NULL, "Problem opening file");
   fclose(f);
 
   /* lire 1ere ligne puis utiliser taille

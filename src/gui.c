@@ -7,6 +7,7 @@
 #include "asde_slist.h"
 #include "asde_slist_utilitary_functions.h"
 #include "game_io.h"
+#include "game_rand.h"
 #include "gui.h"
 #include "solver.h"
 #include <stdbool.h>
@@ -69,7 +70,7 @@ static Gui_color *init_colors(game g) {
   SDL_Color *cells = malloc(sizeof(SDL_Color) * nb_col);
   error(cells == NULL, "Pointer NULL");
 
-  SDL_Color sample = {128, 128, 128, 255};
+  SDL_Color sample = {0, 127, 127, 255};
 
   for (uint x = 0; x < nb_col; x++) {
     int r = rand() % 256;
@@ -140,7 +141,7 @@ static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env) {
     }
 
     // Grid lines
-    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(ren, 70, 70, 70, 255);
 
     for (uint y = 0; y < 1 + env->grid_height * env->cell_len * env->cell_ratio;
          y += env->cell_len * env->cell_ratio) {
@@ -162,12 +163,26 @@ static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env) {
 /* **************************************************************** */
 
 Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
-  error(argc != 2, "Usage: ./recolor_sdl <name>.rec");
+
+  game g = NULL;
+
+  if (argc == 1) {
+    error(argc != 2, "./recolor_sdl <filename>");
+  } else if (argc == 2) {
+    g = game_load(argv[1]);
+  } else {
+    error(argc < 4 || argc > 5, "./recolor_sdl <w> <h> <nb_mov_max> <S|N>");
+
+    uint w = atoi(argv[1]);
+    uint h = atoi(argv[2]);
+    uint mov_max = atoi(argv[3]);
+    bool is_wrap = (argc == 5) ? (argv[4][0] == 'S') : false;
+
+    g = game_random_ext(w, h, is_wrap, 16, mov_max);
+  }
 
   Env *env = malloc(sizeof(struct Env_t));
   error(env == NULL, "Pointer NULL");
-
-  game g = game_load(argv[1]);
 
   PRINT("Press ESC to quit.\nGood luck ! \n");
 
