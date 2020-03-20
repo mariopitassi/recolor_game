@@ -10,27 +10,44 @@
 #include "game_rand.h"
 #include "gui.h"
 #include "solver.h"
+#include "time.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 /* **************************************************************** */
 
-typedef struct Gui_color {
-  SDL_Color bg;
-  SDL_Color grid_bg;
+#define FONT "ressources/squirk.ttf"
+#define FONTSIZE 200
+#define BACKGROUND "ressources/bg.jpg"
+
+/* **************************************************************** */
+
+enum status { PLAYING, WIN, RESTART };
+
+struct Text {
+  TTF_Font *font;
+  SDL_Color color;
+  uint x;
+  uint y;
+  uint w;
+  uint h;
+};
+
+struct Gui_color {
+  SDL_Texture *bg;
   SDL_Color grid_line;
   SDL_Color *cells;
-} Gui_color;
+};
 
 struct Env_t {
   game game;
+  status game_state;
   uint win_width;
   uint win_height;
   uint grid_width;
   uint grid_height;
   uint cell_len;
-  double cell_ratio;
   Gui_color *colors;
 };
 
@@ -44,14 +61,18 @@ struct Env_t {
  * @param g a game instance
  * @return Gui_color* pointer
  */
-static Gui_color *init_colors(game g) {
+static Gui_color *init_colors(SDL_Renderer *ren, game g) {
 
   Gui_color *gui = malloc(sizeof(Gui_color));
   error(gui == NULL, "Pointer NULLL");
 
-  gui->bg = (SDL_Color){};
-  gui->grid_bg = (SDL_Color){};
-  gui->grid_line = (SDL_Color){};
+  SDL_Texture *bg = IMG_LoadTexture(ren, BACKGROUND);
+  if (!bg)
+    ERROR("IMG_LoadTexture: %s\n", BACKGROUND);
+
+  gui->bg = bg;
+
+  gui->grid_line = (SDL_Color){70, 70, 70, 255};
 
   uint nb_col = 0;
   SList colors = asde_slist_create_empty();
@@ -106,9 +127,9 @@ static Gui_color *init_colors(game g) {
 static void draw_cell(SDL_Window *win, SDL_Renderer *ren, Env *env, uint x,
                       uint y, color c) {
 
-  uint len = env->cell_len * env->cell_ratio;
-  x *= env->cell_len * env->cell_ratio;
-  y *= env->cell_len * env->cell_ratio;
+  uint len = env->cell_len;
+  x *= len;
+  y *= len;
 
   SDL_Rect cell = {x, y, len, len};
   SDL_Color color = env->colors->cells[c];
@@ -126,38 +147,65 @@ static void draw_cell(SDL_Window *win, SDL_Renderer *ren, Env *env, uint x,
  */
 static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env) {
 
-  SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
-  SDL_RenderClear(ren);
-
-  // TODO: Create a system to do responsive grid
-  if (env->win_width > env->win_height) {
-
-    // Cells drawing
-    for (uint x = 0; x < env->grid_width; x++) {
-      for (uint y = 0; y < env->grid_height; y++) {
-        color c = game_cell_current_color(env->game, x, y);
-        draw_cell(win, ren, env, x, y, c);
-      }
+  // Cells drawing
+  for (uint x = 0; x < env->grid_width; x++) {
+    for (uint y = 0; y < env->grid_height; y++) {
+      color c = game_cell_current_color(env->game, x, y);
+      draw_cell(win, ren, env, x, y, c);
     }
-
-    // Grid lines
-    SDL_SetRenderDrawColor(ren, 70, 70, 70, 255);
-
-    for (uint y = 0; y < 1 + env->grid_height * env->cell_len * env->cell_ratio;
-         y += env->cell_len * env->cell_ratio) {
-      SDL_RenderDrawLine(ren, 0, y,
-                         env->grid_width * env->cell_len * env->cell_ratio, y);
-    }
-
-    // Grid rows
-    for (uint x = 0; x < 1 + env->grid_width * env->cell_len * env->cell_ratio;
-         x += env->cell_len * env->cell_ratio) {
-      SDL_RenderDrawLine(ren, x, 0, x,
-                         env->grid_height * env->cell_len * env->cell_ratio);
-    }
-
-  } else {
   }
+
+  // Grid lines
+  SDL_Color gc = env->colors->grid_line;
+  SDL_SetRenderDrawColor(ren, gc.r, gc.g, gc.b, 255);
+
+  uint len = env->cell_len;
+
+  for (uint y = 0; y < 1 + env->grid_height * len; y += len) {
+    SDL_RenderDrawLine(ren, 0, y, env->grid_width * len, y);
+  }
+
+  // Grid rows
+  for (uint x = 0; x < 1 + env->grid_width * len; x += len) {
+    SDL_RenderDrawLine(ren, x, 0, x, env->grid_height * len);
+  }
+}
+
+static Text *init_text(TTF_Font *font, SDL_Color color, uint x, uint y, uint w,
+                       uint h) {
+
+  Text *text = (Text *)malloc(sizeof(Text));
+  error(text == NULL, "Not enough memory");
+
+  text->font = font;
+  text->color = color;
+  text->x = x;
+  text->y = y;
+  text->w = w;
+  text->h = h;
+
+  return text;
+}
+
+static void draw_text(SDL_Window *win, SDL_Renderer *ren, Env *env, Text *text,
+                      const char *msg) {
+  SDL_Surface *surf = TTF_RenderText_Blended(text->font, msg, text->color);
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(ren, surf);
+
+  SDL_Rect msg_rect;
+  msg_rect.w = text->w;
+  msg_rect.h = text->h;
+  msg_rect.x = text->x;
+  msg_rect.y = text->y;
+
+  SDL_RenderCopy(ren, texture, NULL, &msg_rect);
+
+  SDL_FreeSurface(surf);
+}
+
+static void free_text(Text *text) {
+  TTF_CloseFont(text->font);
+  free(text);
 }
 
 /* **************************************************************** */
@@ -166,6 +214,7 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
 
   game g = NULL;
 
+  // Handle executable arguments
   if (argc == 1) {
     error(argc != 2, "./recolor_sdl <filename>");
   } else if (argc == 2) {
@@ -187,29 +236,44 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   PRINT("Press ESC to quit.\nGood luck ! \n");
 
   // Get screen size info (width & height)
-  SDL_DisplayMode DM;
-  SDL_GetCurrentDisplayMode(0, &DM);
-
-  // Set window size to screen size (a "fullscreen")
-  SDL_SetWindowSize(win, DM.w, DM.h);
+  SDL_MaximizeWindow(win);
   SDL_SetWindowPosition(win, 0, 0);
 
+  // Get screen size info (width & height)
+  int w, h;
+  SDL_GetWindowSize(win, &w, &h);
+
   // Env initialisation
-  env->win_width = DM.w;
-  env->win_height = DM.h;
+  env->win_width = w;
+  env->win_height = h;
 
   env->game = g;
+  env->game_state = PLAYING;
 
   env->grid_width = game_width(g);
   env->grid_height = game_height(g);
 
-  // FIXME: cell_ratio double division to uint => could cause graphic bug
-  env->cell_ratio = 0.8;
-  env->cell_len = (env->win_width > env->win_height)
-                      ? (env->win_height / env->grid_height)
-                      : (env->win_width / env->grid_width);
+  // Cell length depending some environment conditions
+  if (env->grid_width > env->grid_height) {
+    env->cell_len = env->win_width / env->grid_width;
 
-  env->colors = (Gui_color *)init_colors(g);
+    if (env->cell_len * env->grid_height > env->win_height)
+      env->cell_len = env->win_height / env->grid_width;
+
+  } else if (env->grid_width < env->grid_height) {
+    env->cell_len = env->win_height / (env->grid_height);
+
+    if (env->cell_len * env->grid_width > env->win_width)
+      env->cell_len = env->win_width / env->grid_height;
+
+  } else if (env->win_width < env->win_height) {
+    env->cell_len = env->win_width / env->grid_width;
+
+  } else {
+    env->cell_len = env->win_height / (env->grid_height);
+  }
+
+  env->colors = (Gui_color *)init_colors(ren, g);
 
   return env;
 }
@@ -217,7 +281,46 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
 /* **************************************************************** */
 
 void render(SDL_Window *win, SDL_Renderer *ren, Env *env) {
-  draw_grid(win, ren, env);
+
+  status state = env->game_state;
+
+  if (state == PLAYING) {
+    SDL_RenderCopy(ren, env->colors->bg, NULL, NULL);
+
+    draw_grid(win, ren, env);
+
+  } else {
+    SDL_RenderCopy(ren, env->colors->bg, NULL, NULL);
+
+    SDL_Color c1 = {237, 237, 237, 255};
+    SDL_Color c2 = {179, 179, 179, 255};
+
+    TTF_Font *f1 = TTF_OpenFont(FONT, FONTSIZE);
+    TTF_Font *f2 = TTF_OpenFont(FONT, FONTSIZE / 2);
+
+    if (!f1 || !f2)
+      ERROR("TTF_OpenFont: %s\n", FONT);
+
+    // End game message (pos: window center)
+    uint w = 600;
+    uint h = 100;
+    uint x = (env->win_width - w) / 2;
+    uint y = (env->win_height - h) / 2;
+    Text *txt1 = init_text(f1, c1, x, y, w, h);
+
+    if (env->game_state == RESTART) {
+      draw_text(win, ren, env, txt1, "Dommage perdu pour cette fois !");
+    } else {
+      draw_text(win, ren, env, txt1, "Bien joué tu as gagné");
+    }
+
+    free_text(txt1);
+
+    Text *txt2 = init_text(f2, c2, x + 150, y + 100, w / 2, h / 2);
+
+    draw_text(win, ren, env, txt2, "Appuie sur R pour rejouer");
+    free_text(txt2);
+  }
 }
 
 /* **************************************************************** */
@@ -232,12 +335,21 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
     case SDLK_ESCAPE:
       return true;
       break;
+    case SDLK_q:
+      return true;
+      break;
+    case SDLK_r:
+      if (env->game_state == RESTART) {
+        game_restart(env->game);
+        env->game_state = PLAYING;
+      }
+      break;
     }
   }
 
-  if (e->type == SDL_MOUSEBUTTONUP) {
-    uint x = e->button.x / (env->cell_len * env->cell_ratio);
-    uint y = e->button.y / (env->cell_len * env->cell_ratio);
+  if (e->type == SDL_MOUSEBUTTONUP && env->game_state == PLAYING) {
+    uint x = e->button.x / (env->cell_len);
+    uint y = e->button.y / (env->cell_len);
 
     if (x >= 0 && x < env->grid_width && y >= 0 && y < env->grid_height) {
 
@@ -246,14 +358,11 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
       if (game_nb_moves_cur(env->game) < game_nb_moves_max(env->game)) {
         game_play_one_move(env->game, c_cur);
       } else if (game_is_over(env->game)) {
-
-        // TODO: Create a winning page with button restart or quit
-        PRINT("WINNNNNNN !\n");
+        PRINT("GAGNÉ !\n");
+        env->game_state = WIN;
       } else {
-
-        // TODO: Create page with button restart or quit
-        PRINT("NOUVELLE PARTIE... RECOMMENCE....\n");
-        game_restart(env->game);
+        PRINT("PERDU...\n");
+        env->game_state = RESTART;
       }
     }
   }
@@ -265,7 +374,6 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
 
 void clean(SDL_Window *win, SDL_Renderer *ren, Env *env) {
   game_delete(env->game);
-
   free(env->colors->cells);
   free(env->colors);
   free(env);

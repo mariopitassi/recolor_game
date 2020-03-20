@@ -41,6 +41,7 @@ target_link_libraries(test_game_akasparian game solver)
 target_link_libraries(test_game_mrousseau006 game solver)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ressources DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 include(CTest)
 enable_testing()
