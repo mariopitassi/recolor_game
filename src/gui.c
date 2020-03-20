@@ -295,6 +295,7 @@ void render(SDL_Window *win, SDL_Renderer *ren, Env *env) {
     SDL_Color c1 = {237, 237, 237, 255};
     SDL_Color c2 = {179, 179, 179, 255};
 
+    // TODO: Responsive fonts
     TTF_Font *f1 = TTF_OpenFont(FONT, FONTSIZE);
     TTF_Font *f2 = TTF_OpenFont(FONT, FONTSIZE / 2);
 
