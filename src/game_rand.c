@@ -1,8 +1,8 @@
 #include "game_rand.h"
+#include "game.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "game.h"
 
 game game_random_ext(uint width, uint height, bool is_wrapping, uint max_color,
                      uint nb_max_moves) {

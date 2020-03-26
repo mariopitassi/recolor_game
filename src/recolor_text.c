@@ -20,25 +20,29 @@ int main(int argc, char *argv[]) {
   // Load the default game or a selected game in ./data
   // g = (argc == 1) ? game_load("data/default_game.rec") : game_load(argv[1]);
 
-  if (argc == 1) {
+  if (argc == 3 || argc > 6) {
+    fprintf(stderr, "Usage: ./recolor_text [<w> <h> <nb_mov_max> "
+                    "[<nb_max_color>] [<S|N>]]\n");
+    return EXIT_FAILURE;
+  } else if (argc == 1) {
     g = game_load("data/default_game.rec");
   } else if (argc == 2) {
     g = game_load(argv[1]);
   } else {
 
-    if (argc < 4 || argc > 5) {
-      fprintf(stderr, "Usage: ./recolor_text <w> <h> <nb_mov_max> <S|N>\n");
-      return EXIT_FAILURE;
-    }
-
     uint w = atoi(argv[1]);
     uint h = atoi(argv[2]);
     uint mov_max = atoi(argv[3]);
-    bool is_wrap = (argc == 5) ? (argv[4][0] == 'S') : false;
+    uint nb_max_color = 4; // default
+    uint is_wrap = false;  // default
 
-    g = game_random_ext(w, h, is_wrap, 16, mov_max);
+    if (argc > 4)
+      nb_max_color = atoi(argv[4]);
+    if (argc == 6 && argv[5][0] == 'S')
+      is_wrap = true;
+
+    g = game_random_ext(w, h, is_wrap, nb_max_color, mov_max);
   }
-
   // Starting the game
   play_game(g);
 

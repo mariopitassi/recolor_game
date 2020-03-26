@@ -215,19 +215,28 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   game g = NULL;
 
   // Handle executable arguments
+  error(
+      argc == 3 || argc > 6,
+      "Usage: ./recolor_sdl [<w> <h> <nb_mov_max> [<nb_max_color>] [<S|N>]]\n");
+
   if (argc == 1) {
-    error(argc != 2, "./recolor_sdl <filename>");
+    g = game_load("data/default_game.rec");
   } else if (argc == 2) {
     g = game_load(argv[1]);
   } else {
-    error(argc < 4 || argc > 5, "./recolor_sdl <w> <h> <nb_mov_max> <S|N>");
 
     uint w = atoi(argv[1]);
     uint h = atoi(argv[2]);
     uint mov_max = atoi(argv[3]);
-    bool is_wrap = (argc == 5) ? (argv[4][0] == 'S') : false;
+    uint nb_max_color = 4; // default
+    uint is_wrap = false;  // default
 
-    g = game_random_ext(w, h, is_wrap, 16, mov_max);
+    if (argc > 4)
+      nb_max_color = atoi(argv[4]);
+    if (argc == 6 && argv[5][0] == 'S')
+      is_wrap = true;
+
+    g = game_random_ext(w, h, is_wrap, nb_max_color, mov_max);
   }
 
   Env *env = malloc(sizeof(struct Env_t));

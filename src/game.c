@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct game_s {
+struct game_s {
   color *tab_init; // One-dimensional tab (immutable)
   color *tab_cur;  // One-dimensional tab (mutable)
   uint size_x;     // Grid width
@@ -12,7 +12,7 @@ typedef struct game_s {
   uint moves_max;  // Max move to play
   uint moves_cur;  // Current nb of move
   bool wrap;       // Game is wrapping ?
-} * game;
+};
 
 /* ************* Error handler *********** */
 
