@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     uint is_wrap = false;  // default
 
     if (argc > 4)
-      nb_max_color = atoi(argv[4]);
+      nb_max_color = atoi(argv[4]) > 16 ? 16 : atoi(argv[4]);
     if (argc == 6 && argv[5][0] == 'S')
       is_wrap = true;
 
@@ -64,16 +64,15 @@ void grid_display(game g) {
 
       color c = game_cell_current_color(g, x, y);
 
-      if (c < 10) {
+      if (c < 10)
         printf("%u", c);
-      } else {
+      else {
         char c2 = 'A' + (c - 10); // Converting an int into a char (ASCII table)
         printf("%c", c2);
       }
 
-      if (x == game_width(g) - 1) { // We have reached an edge
-        printf("\n");
-      }
+      if (x == game_width(g) - 1)
+        printf("\n"); // We have reached an edge
     }
   }
 
@@ -96,23 +95,23 @@ void play_game(game g) {
     scanf(" %c", &coup);
     printf("\n");
 
-    if (coup == 'r') {
-      game_restart(g);
-    } else if (coup == 'q') {
-      printf("DOMMAGE \n");
-      we_play = false;
-    } else if (coup >= '0' && coup <= '9') {
+    if (coup >= '0' && coup <= '9')
       game_play_one_move(
           g, coup - '0'); // Converting a char into an int (ASCII table)
-    } else if (coup >= 'A' && coup <= 'F') {
+    else if (coup >= 'A' && coup <= 'F')
       game_play_one_move(
           g, coup - 'A' + 10); // Converting a char into an int (ASCII table)
+    else if (coup == 'r')
+      game_restart(g);
+    else if (coup == 'q') {
+      printf("DOMMAGE\n");
+      we_play = false;
     }
 
     // If the game is over, display the grid and 'BRAVO'.
     if (game_is_over(g)) {
       grid_display(g);
-      printf("BRAVO \n");
+      printf("BRAVO\n");
       we_play = false;
     }
   }

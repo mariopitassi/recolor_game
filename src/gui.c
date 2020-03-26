@@ -232,7 +232,7 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
     uint is_wrap = false;  // default
 
     if (argc > 4)
-      nb_max_color = atoi(argv[4]);
+      nb_max_color = atoi(argv[4]) > 16 ? 16 : atoi(argv[4]);
     if (argc == 6 && argv[5][0] == 'S')
       is_wrap = true;
 
