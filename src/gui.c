@@ -51,6 +51,14 @@ struct Env_t {
   Gui_color *colors;
 };
 
+/* ********************* Usage infos ************************* */
+static void usage(bool cond, char *err_mess) {
+  if (cond) {
+    fprintf(stderr, "Usage: %s \n\n", err_mess);
+    exit(EXIT_FAILURE);
+  }
+}
+
 /* ********************* Static functions ************************* */
 
 /**
@@ -171,6 +179,18 @@ static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env) {
   }
 }
 
+/**
+ * @brief This function allocate and initialize all params required to create a
+ * text
+ *
+ * @param font pointer to a TTF_Font initialized
+ * @param color of the text
+ * @param x horizontal position in the window
+ * @param y vertical position in the window
+ * @param w fixed width
+ * @param h fixed height
+ * @return Text*
+ */
 static Text *init_text(TTF_Font *font, SDL_Color color, uint x, uint y, uint w,
                        uint h) {
 
@@ -187,6 +207,16 @@ static Text *init_text(TTF_Font *font, SDL_Color color, uint x, uint y, uint w,
   return text;
 }
 
+/**
+ * @brief It draws the text in a renderer with a Text already allocate and
+ * initialize
+ *
+ * @param win pointer to the window context
+ * @param ren pointer to the renderer context
+ * @param env pointer to the environment
+ * @param text pointer to Text structure initialized with init_text()
+ * @param msg a const char with the content of the text to draw.
+ */
 static void draw_text(SDL_Window *win, SDL_Renderer *ren, Env *env, Text *text,
                       const char *msg) {
   SDL_Surface *surf = TTF_RenderText_Blended(text->font, msg, text->color);
@@ -203,6 +233,11 @@ static void draw_text(SDL_Window *win, SDL_Renderer *ren, Env *env, Text *text,
   SDL_FreeSurface(surf);
 }
 
+/**
+ * @brief Free in memory the text.
+ *
+ * @param text pointer to a Text structure
+ */
 static void free_text(Text *text) {
   TTF_CloseFont(text->font);
   free(text);
@@ -216,18 +251,20 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
 
   // Handle executable arguments
   if (argc == 1) {
-    error(argc != 2, "./recolor_sdl <filename>");
+    usage(argc != 2, "./recolor_sdl <filename>");
   } else if (argc == 2) {
     g = game_load(argv[1]);
   } else {
-    error(argc < 4 || argc > 5, "./recolor_sdl <w> <h> <nb_mov_max> <S|N>");
+    usage(argc < 4 || argc > 6,
+          "./recolor_sdl <w*> <h*> <nb_mov_max*> <nb_max_color> <S|N>");
 
     uint w = atoi(argv[1]);
     uint h = atoi(argv[2]);
     uint mov_max = atoi(argv[3]);
-    bool is_wrap = (argc == 5) ? (argv[4][0] == 'S') : false;
+    uint max_col = (argc >= 5) ? atoi(argv[4]) : 4;
+    bool is_wrap = (argc == 6) ? (argv[5][0] == 'S') : false;
 
-    g = game_random_ext(w, h, is_wrap, 16, mov_max);
+    g = game_random_ext(w, h, is_wrap, max_col, mov_max);
   }
 
   Env *env = malloc(sizeof(struct Env_t));
