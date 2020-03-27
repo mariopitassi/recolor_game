@@ -250,7 +250,6 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   game g = NULL;
 
   // Handle executable arguments
-
   if (argc == 1) {
     usage(argc != 2, "./recolor_sdl <filename>");
   } else if (argc == 2) {
@@ -350,7 +349,7 @@ void render(SDL_Window *win, SDL_Renderer *ren, Env *env) {
     if (env->game_state == RESTART) {
       draw_text(win, ren, env, txt1, "Dommage perdu pour cette fois !");
     } else {
-      draw_text(win, ren, env, txt1, "Bien joué tu as gagné");
+      draw_text(win, ren, env, txt1, "Bien joué, tu as gagné !");
     }
 
     free_text(txt1);
