@@ -250,6 +250,7 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   game g = NULL;
 
   // Handle executable arguments
+
   if (argc == 1) {
     usage(argc != 2, "./recolor_sdl <filename>");
   } else if (argc == 2) {
