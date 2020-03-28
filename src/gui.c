@@ -99,6 +99,25 @@ static Gui_color *init_colors(SDL_Renderer *ren, game g) {
   SDL_Color *cells = malloc(sizeof(SDL_Color) * nb_col);
   error(cells == NULL, "Pointer NULL");
 
+  /** @Mario, voilà un tableau avec 16 couleurs différentes
+   * J'ai testé et ça fonctionne.
+   * Je mets ça là car les couleurs générées aléatoirement sont parfois très
+   * similaires lorsqu'on a plus de 10 couleurs.
+   * J'ai rajouté un fichier 'data/test_col.rec' pour que tu puisses comparer.
+   * A toi de choisir ensuite si tu veux garder les couleurs aléatoires ou pas
+   *:)
+  **/
+  SDL_Color col_arr[16] = {
+      {255, 0, 0, 255} /*RED*/,           {0, 255, 0, 255} /*LIME*/,
+      {0, 0, 255, 255} /*BLUE*/,          {255, 255, 0, 255} /*YELLOW*/,
+      {0, 255, 255, 255} /*CYAN*/,        {255, 0, 255, 255} /*MAGENTA*/,
+      {255, 140, 0, 255} /*DARK_ORANGE*/, {192, 192, 192, 255} /*SILVER*/,
+      {0, 139, 139, 255} /*DARK_CYAN*/,   {128, 128, 0, 255} /*OLIVE*/,
+      {0, 128, 0, 255} /*GREEN*/,         {128, 0, 128, 255} /*PURPLE*/,
+      {105, 105, 105, 255} /*DIM_GREY*/,  {255, 218, 185, 255} /*PEACH_PUFF*/,
+      {160, 82, 45, 255} /*SIENNA*/,      {255, 215, 0, 255} /*GOLD*/
+  };
+
   SDL_Color sample = {0, 127, 127, 255};
 
   for (uint x = 0; x < nb_col; x++) {
