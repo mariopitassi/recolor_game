@@ -6,3 +6,4 @@ build/
 Makefile
 .DS_Store
 __MAC_OSX
+Android/jni/SDL*
