@@ -1,6 +1,6 @@
 // SDL2 Model by aurelien.esnard@u-bordeaux.fr
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef GUI_H
+#define GUI_H
 
 #include <SDL.h>
 #include <stdbool.h>
