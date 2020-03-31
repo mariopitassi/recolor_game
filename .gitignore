@@ -6,4 +6,9 @@ build/
 Makefile
 .DS_Store
 __MAC_OSX
+
 Android/jni/SDL*
+Android/bin/
+Android/gen/
+Android/libs/
+Android/obj/
