@@ -1,1 +1,1 @@
-/net/cremi/fakhoun/espaces/travail/projet/projetGroupe/recolor-tdm1-c/src/game_io.c
+../../../src/game_io.c
