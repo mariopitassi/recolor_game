@@ -44,6 +44,45 @@ typedef struct Gui_color Gui_color;
 
 /* **************************************************************** */
 
+#define RED_SDL                                                                \
+  (SDL_Color) { 255, 0, 0, 255 }
+#define LIME                                                                   \
+  (SDL_Color) { 0, 255, 0, 255 }
+#define BLUE_SDL                                                               \
+  (SDL_Color) { 0, 0, 255, 255 }
+#define YELLOW_SDL                                                             \
+  (SDL_Color) { 255, 255, 0, 255 }
+#define CYAN                                                                   \
+  (SDL_Color) { 0, 255, 255, 255 }
+#define MAGENTA                                                                \
+  (SDL_Color) { 255, 0, 255, 255 }
+#define ORANGE                                                                 \
+  (SDL_Color) { 255, 165, 0, 255 }
+#define SILVER                                                                 \
+  (SDL_Color) { 192, 192, 192, 255 }
+#define DARK_CYAN                                                              \
+  (SDL_Color) { 0, 139, 139, 255 }
+#define OLIVE                                                                  \
+  (SDL_Color) { 128, 128, 0, 255 }
+#define GREEN_SDL                                                              \
+  (SDL_Color) { 0, 128, 0, 255 }
+#define PURPLE                                                                 \
+  (SDL_Color) { 128, 0, 128, 255 }
+#define DIM_GREY                                                               \
+  (SDL_Color) { 105, 105, 105, 255 }
+#define PEACH_PUFF                                                             \
+  (SDL_Color) { 255, 218, 185, 255 }
+#define SIENNA                                                                 \
+  (SDL_Color) { 160, 82, 45, 255 }
+#define SALMON                                                                 \
+  (SDL_Color) { 250, 128, 114, 255 }
+#define BLACK                                                                  \
+  (SDL_Color) { 0, 0, 0, 255 }
+#define WHITE                                                                  \
+  (SDL_Color) { 255, 255, 255, 255 }
+
+/* **************************************************************** */
+
 Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]);
 void render(SDL_Window *win, SDL_Renderer *ren, Env *env);
 void clean(SDL_Window *win, SDL_Renderer *ren, Env *env);

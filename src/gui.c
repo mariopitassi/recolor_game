@@ -14,6 +14,7 @@
 #include <stdlib.h>
 
 /* **************************************************************** */
+
 #ifdef __ANDROID__
 #define FONT "squirk.ttf"
 #define FONTSIZE 200
@@ -66,11 +67,17 @@ static void draw_cell(SDL_Window *win, SDL_Renderer *ren, Env *env, uint x,
 /* ********************* Main functions *************************** */
 
 Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
+  srand(time(NULL));
+
   // Init game
   game g;
 
 #ifdef __ANDROID__
-  g = game_random_ext(rand() % 16, rand() % 16, true, rand() % 16, 50);
+  // Create a complete random game for the moment
+  // We'll create a sort of a menu to choose the game we want in the future
+  uint wrap = rand() % 2;
+  g = game_random_ext(6 + rand() % 15, 6 + rand() % 15, wrap, 4 + rand() % 13,
+                      12 + rand() % 100);
 #else
   // Handle executable arguments
   if (argc == 1) {
@@ -119,24 +126,22 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
     ERROR("IMG_LoadTexture: %s\n", BACKGROUND);
 
   // Init text texture using squirk font
-  SDL_Color dim_grey = {105, 105, 105, 255};
-  SDL_Color black = {0, 0, 0, 255};
   TTF_Font *font = TTF_OpenFont(FONT, FONTSIZE);
   if (!font)
     ERROR("TTF_OpenFont: %s\n", FONT);
   TTF_SetFontStyle(font,
                    TTF_STYLE_NORMAL); // TTF_STYLE_ITALIC | TTF_STYLE_NORMAL
 
-  SDL_Surface *title = TTF_RenderText_Blended(font, "Flood It", dim_grey);
+  SDL_Surface *title = TTF_RenderText_Blended(font, "Flood It", DIM_GREY);
   env->textures[TITLE] = SDL_CreateTextureFromSurface(ren, title);
 
-  SDL_Surface *restart = TTF_RenderText_Blended(font, "Restart", dim_grey);
+  SDL_Surface *restart = TTF_RenderText_Blended(font, "Restart", DIM_GREY);
   env->textures[RESTART] = SDL_CreateTextureFromSurface(ren, restart);
 
-  SDL_Surface *quit = TTF_RenderText_Blended(font, "Quit", dim_grey);
+  SDL_Surface *quit = TTF_RenderText_Blended(font, "Quit", DIM_GREY);
   env->textures[QUIT] = SDL_CreateTextureFromSurface(ren, quit);
 
-  SDL_Surface *won = TTF_RenderText_Blended(font, "YOU WON !", black);
+  SDL_Surface *won = TTF_RenderText_Blended(font, "YOU WON !", BLACK);
   env->textures[WON] = SDL_CreateTextureFromSurface(ren, won);
 
   SDL_FreeSurface(title);
@@ -361,16 +366,10 @@ static Gui_color *init_colors(SDL_Renderer *ren, game g) {
   SDL_Color *cells = malloc(sizeof(SDL_Color) * nb_col);
   error(cells == NULL, "Pointer NULL");
 
-  SDL_Color col_arr[16] = {
-      {255, 0, 0, 255} /*RED*/,           {0, 255, 0, 255} /*LIME*/,
-      {0, 0, 255, 255} /*BLUE*/,          {255, 255, 0, 255} /*YELLOW*/,
-      {0, 255, 255, 255} /*CYAN*/,        {255, 0, 255, 255} /*MAGENTA*/,
-      {255, 140, 0, 255} /*DARK_ORANGE*/, {192, 192, 192, 255} /*SILVER*/,
-      {0, 139, 139, 255} /*DARK_CYAN*/,   {128, 128, 0, 255} /*OLIVE*/,
-      {0, 128, 0, 255} /*GREEN*/,         {128, 0, 128, 255} /*PURPLE*/,
-      {105, 105, 105, 255} /*DIM_GREY*/,  {255, 218, 185, 255} /*PEACH_PUFF*/,
-      {160, 82, 45, 255} /*SIENNA*/,      {255, 215, 0, 255} /*GOLD*/
-  };
+  SDL_Color col_arr[] = {RED_SDL,   LIME,       BLUE_SDL,  YELLOW_SDL,
+                         CYAN,      MAGENTA,    ORANGE,    SILVER,
+                         DARK_CYAN, OLIVE,      GREEN_SDL, PURPLE,
+                         DIM_GREY,  PEACH_PUFF, SIENNA,    SALMON};
 
   for (uint x = 0; x < nb_col; x++)
     cells[x] = col_arr[x];
@@ -414,9 +413,6 @@ static void draw_cell(SDL_Window *win, SDL_Renderer *ren, Env *env, uint x,
  * @param env pointer to the environment
  */
 static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env) {
-
-  update_env(win, env);
-
   // Cells drawing
   for (uint x = 0; x < game_width(env->game); x++) {
     for (uint y = 0; y < game_height(env->game); y++) {
@@ -425,23 +421,23 @@ static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env) {
     }
   }
 
+  /** Version without lines
   // Grid lines
   SDL_Color gc = env->colors->grid_line;
   SDL_SetRenderDrawColor(ren, gc.r, gc.g, gc.b, 255);
 
-  /** Version without line
-    for (uint y = env->grid_start_y; y < 1 + env->grid_start_y +
-  env->grid_height; y += env->cell_height) {
-      SDL_RenderDrawLine(ren, env->grid_start_x, y, env->grid_start_x +
-  env->grid_width, y);
-    }
+  for (uint y = env->grid_start_y; y < 1 + env->grid_start_y + env->grid_height;
+       y += env->cell_height) {
+    SDL_RenderDrawLine(ren, env->grid_start_x, y,
+                       env->grid_start_x + env->grid_width, y);
+  }
 
-    // Grid rows
-    for (uint x = env->grid_start_x; x < 1 + env->grid_start_x +
-  env->grid_width; x += env->cell_width) {
-      SDL_RenderDrawLine(ren, x, env->grid_start_y, x, env->grid_start_y +
-  env->grid_height);
-    }
+  // Grid rows
+  for (uint x = env->grid_start_x; x < 1 + env->grid_start_x + env->grid_width;
+       x += env->cell_width) {
+    SDL_RenderDrawLine(ren, x, env->grid_start_y, x,
+                       env->grid_start_y + env->grid_height);
+  }
   **/
 }
 
@@ -486,7 +482,7 @@ static void render_const_textures(SDL_Renderer *ren, Env *env) {
   SDL_QueryTexture(env->textures[QUIT], NULL, NULL, NULL, NULL);
   SDL_RenderCopy(ren, env->textures[QUIT], NULL, &rect);
 
-  // Draw lines to seperate them (2 lasts ones are optionals)
+  // Draw lines to seperate them
   int start_line_x = env->grid_start_x + env->grid_width / 4;
   int start_line_y = env->grid_start_y + env->grid_height;
   int end_line_x = env->grid_start_x + env->grid_width / 4;
@@ -521,8 +517,6 @@ static void render_status(SDL_Renderer *ren, Env *env) {
     sprintf(str_status, "%u/%u !", game_nb_moves_cur(env->game),
             game_nb_moves_max(env->game));
 
-  SDL_Color dim_grey = {105, 105, 105, 255};
-  SDL_Color red = {255, 0, 0, 255};
   TTF_Font *font = TTF_OpenFont(FONT, FONTSIZE);
   if (!font)
     ERROR("TTF_OpenFont: %s\n", FONT);
@@ -530,10 +524,12 @@ static void render_status(SDL_Renderer *ren, Env *env) {
                    TTF_STYLE_NORMAL); // TTF_STYLE_ITALIC | TTF_STYLE_NORMAL
 
   SDL_Surface *surface;
-  if (!lost)
-    surface = TTF_RenderText_Blended(font, str_status, dim_grey);
+  if (game_is_over(env->game))
+    surface = TTF_RenderText_Blended(font, str_status, LIME);
+  else if (!lost)
+    surface = TTF_RenderText_Blended(font, str_status, DIM_GREY);
   else
-    surface = TTF_RenderText_Blended(font, str_status, red);
+    surface = TTF_RenderText_Blended(font, str_status, RED_SDL);
 
   SDL_Texture *status = SDL_CreateTextureFromSurface(ren, surface);
 
