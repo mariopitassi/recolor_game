@@ -429,7 +429,7 @@ static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env) {
   SDL_Color gc = env->colors->grid_line;
   SDL_SetRenderDrawColor(ren, gc.r, gc.g, gc.b, 255);
 
-  /** Functional but I prefer without lines
+  /** Version without line
     for (uint y = env->grid_start_y; y < 1 + env->grid_start_y +
   env->grid_height; y += env->cell_height) {
       SDL_RenderDrawLine(ren, env->grid_start_x, y, env->grid_start_x +
