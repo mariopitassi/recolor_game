@@ -1,5 +1,6 @@
 #include "gui.h"
 #include "game_io.h"
+#include "game_rand.h"
 #include "solver.h"
 #include "time.h"
 #include "toolbox.h"

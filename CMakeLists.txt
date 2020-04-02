@@ -29,7 +29,7 @@ add_executable(test_game_akasparian tests/test_game_akasparian.c)
 add_executable(test_game_mrousseau006 tests/test_game_mrousseau006.c)
 
 add_library(game src/game_io.c src/game.c )
-add_library(tool src/gui.c src/solver.c src/toolbox.c)
+add_library(tool src/gui.c src/game_rand.c src/solver.c src/toolbox.c)
 
 target_link_libraries(recolor_text tool game)
 target_link_libraries(recolor_solve tool game)

@@ -5,11 +5,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-typedef struct Env_t Env;
-typedef enum status status;
-typedef struct Text Text;
-typedef struct Gui_color Gui_color;
-
 /* **************************************************************** */
 
 #ifdef __ANDROID__
@@ -33,13 +28,6 @@ typedef struct Gui_color Gui_color;
     exit(EXIT_FAILURE);                                                        \
   } while (0)
 #endif
-
-/* **************************************************************** */
-
-#define APP_NAME "Recolor Game"
-#define SCREEN_WIDTH 600
-#define SCREEN_HEIGHT 600
-#define DELAY 100
 
 /* **************************************************************** */
 
@@ -81,6 +69,18 @@ typedef struct Gui_color Gui_color;
   (SDL_Color) { 255, 255, 255, 255 }
 
 /* **************************************************************** */
+
+#define APP_NAME "Recolor Game"
+#define SCREEN_WIDTH 600
+#define SCREEN_HEIGHT 600
+#define DELAY 100
+
+/* **************************************************************** */
+
+typedef struct Env_t Env;
+typedef enum status status;
+typedef struct Text Text;
+typedef struct Gui_color Gui_color;
 
 Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]);
 void render(SDL_Window *win, SDL_Renderer *ren, Env *env);
