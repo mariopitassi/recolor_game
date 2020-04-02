@@ -10,7 +10,7 @@ LOCAL_CFLAGS += -g -std=c99
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(SDL_PATH)/include
 
-YOUR_SRC_FILES= main.c asde_slist_utilitary_functions.c asde_slist.c game_io.c game_rand.c game.c gui.c solver.c
+YOUR_SRC_FILES= main.c gui.c game.c game_rand.c game_io.c toolbox.c solver.c
 
 LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.c $(YOUR_SRC_FILES)
 
