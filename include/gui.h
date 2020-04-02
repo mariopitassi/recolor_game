@@ -1,4 +1,3 @@
-// SDL2 Model by aurelien.esnard@u-bordeaux.fr
 #ifndef GUI_H
 #define GUI_H
 

@@ -1,6 +1,6 @@
 #include "game.h"
 #include "game_io.h"
-#include "game_rand.h"
+#include "toolbox.h"
 #include <stdio.h>
 #include <stdlib.h>
 

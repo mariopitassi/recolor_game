@@ -1,1 +1,0 @@
-../../../include/asde_slist_utilitary_functions.h

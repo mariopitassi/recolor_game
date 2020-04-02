@@ -1,14 +1,11 @@
+#include "gui.h"
+#include "toolbox.h"
+#include "game_io.h"
+#include "solver.h"
+#include "time.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
-
-#include "asde_slist.h"
-#include "asde_slist_utilitary_functions.h"
-#include "game_io.h"
-#include "game_rand.h"
-#include "gui.h"
-#include "solver.h"
-#include "time.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,14 +76,16 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   g = game_random_ext(6 + rand() % 15, 6 + rand() % 15, wrap, 4 + rand() % 13,
                       12 + rand() % 100);
 #else
+
+  // Raise usage if number of arguments are wrong('3' | '>6')
+  usage(argc == 3 || argc > 6, "./recolor_sdl <w*> <h*> <nb_mov_max*> <nb_max_color> <S|N>");
+
   // Handle executable arguments
   if (argc == 1) {
     g = game_load("data/default_game.rec");
   } else if (argc == 2) {
     g = game_load(argv[1]);
   } else {
-    usage(argc < 4 || argc > 6,
-          "./recolor_sdl <w*> <h*> <nb_mov_max*> <nb_max_color> <S|N>");
 
     uint w = atoi(argv[1]);
     uint h = atoi(argv[2]);
@@ -107,11 +106,11 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
 
   PRINT("Press 'ESC' or 'q' to quit.\nPress 'r' to restart\nGood luck !\n");
 
-  // Get screen size info (width & height) and update the environment
-  update_env(win, env);
-
   SDL_MaximizeWindow(win);
   SDL_SetWindowPosition(win, 0, 0);
+
+  // Get screen size info (width & height) and update the environment
+  update_env(win, env);
 
   // Init grid colors
   env->colors = init_colors(ren, g);
@@ -315,8 +314,7 @@ static void usage(bool cond, char *err_mess) {
 }
 
 /**
- * @brief Update some environment variables (ones likely to be changed) for more
- * flexibility
+ * @brief Update some environment variables according to window's size for responsive purpose.
  *
  * @param win pointer to a window
  * @param env pointer to a renderer
@@ -336,6 +334,7 @@ static void update_env(SDL_Window *win, Env *env) {
       (win_height / nb_y_cells) * 0.8; // 0.1 for title and 0.1 for status
 
   // Adjust width and height to get squares
+  // Take smaller length (grid may not fit the screen otherwise)
   if (env->cell_width < env->cell_height)
     env->cell_height = env->cell_width;
   else

@@ -1,6 +1,7 @@
 #ifndef SOLVER_H
 #define SOLVER_H
-#include "asde_slist.h"
+
+#include "toolbox.h"
 #include "game.h"
 #include "game_io.h"
 #include <stdio.h>

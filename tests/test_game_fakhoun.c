@@ -1,5 +1,4 @@
-#include "asde_slist.h"
-#include "asde_slist_utilitary_functions.h"
+#include "toolbox.h"
 #include "game.h"
 #include "game_io.h"
 #include "solver.h"
