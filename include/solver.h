@@ -1,9 +1,9 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
-#include "toolbox.h"
 #include "game.h"
 #include "game_io.h"
+#include "toolbox.h"
 #include <stdio.h>
 
 /**

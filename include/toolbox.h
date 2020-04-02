@@ -73,8 +73,6 @@ extern SList asde_slist_concat(SList L1, SList L2);
 // reverses a SList and returns the new list
 extern SList asde_slist_reverse(SList L);
 
-
-
 /* ********************* GAME_RAND function *************************** */
 
 /**
@@ -91,6 +89,5 @@ extern SList asde_slist_reverse(SList L);
  **/
 game game_random_ext(uint width, uint height, bool is_wrapping, uint max_color,
                      uint nb_max_moves);
-
 
 #endif /* TOOLBOX_H */

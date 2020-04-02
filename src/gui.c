@@ -1,8 +1,8 @@
 #include "gui.h"
-#include "toolbox.h"
 #include "game_io.h"
 #include "solver.h"
 #include "time.h"
+#include "toolbox.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
@@ -78,7 +78,8 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
 #else
 
   // Raise usage if number of arguments are wrong('3' | '>6')
-  usage(argc == 3 || argc > 6, "./recolor_sdl <w*> <h*> <nb_mov_max*> <nb_max_color> <S|N>");
+  usage(argc == 3 || argc > 6,
+        "./recolor_sdl <w*> <h*> <nb_mov_max*> <nb_max_color> <S|N>");
 
   // Handle executable arguments
   if (argc == 1) {
@@ -314,7 +315,8 @@ static void usage(bool cond, char *err_mess) {
 }
 
 /**
- * @brief Update some environment variables according to window's size for responsive purpose.
+ * @brief Update some environment variables according to window's size for
+ * responsive purpose.
  *
  * @param win pointer to a window
  * @param env pointer to a renderer

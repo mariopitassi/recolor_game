@@ -214,8 +214,6 @@ SList asde_slist_reverse(SList L) {
                            asde_slist_data(L));
 }
 
-
-
 /* ********************* GAME_RAND function *************************** */
 
 game game_random_ext(uint width, uint height, bool is_wrapping, uint max_color,

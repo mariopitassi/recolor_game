@@ -1,7 +1,7 @@
 #include "solver.h"
-#include "toolbox.h"
 #include "game.h"
 #include "game_io.h"
+#include "toolbox.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
