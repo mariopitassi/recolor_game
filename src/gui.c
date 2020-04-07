@@ -25,9 +25,9 @@
 
 /* **************************************************************** */
 
-enum status { PLAYING, WIN };
-enum texture { BACKGROUND_TEXT, TITLE, RESTART, QUIT, WON };
-enum env_width_height { WINDOW, GRID, CELL };
+enum status { PLAYING, WIN, LOSE };
+enum texture { BACKGROUND_IMG, TITLE, RESTART, QUIT, WON, LOST, NB_TEXTURES };
+enum env_width_height { WINDOW, GRID, CELL, NB_RESIZABLE_ELEMENTS};
 
 struct Gui_color {
   SDL_Color grid_line; // Grid's lines color (not used in this version)
@@ -43,14 +43,13 @@ struct Env_t {
   uint grid_start_y;      // Grid's starting point (y-axis)
   Gui_color *colors;      // Look at Gui_color struct above
   SDL_Texture **textures; // Array of all constant textures
-  uint nb_textures;       // Nb of all constant textures
 };
 
 /* **** Static functions (decription below main functions) **** */
 
 static void usage(bool cond, char *err_mess);
 static void update_env(SDL_Window *win, Env *env);
-static Gui_color *init_colors(SDL_Renderer *ren, game g);
+static Gui_color *init_colors(game g);
 static void render_const_textures(SDL_Renderer *ren, Env *env);
 static void render_status(SDL_Renderer *ren, Env *env);
 static bool click_on_grid(SDL_Event *e, Env *env);
@@ -58,6 +57,7 @@ static bool click_under_grid(SDL_Event *e, Env *env);
 static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env);
 static void draw_cell(SDL_Window *win, SDL_Renderer *ren, Env *env, uint x,
                       uint y, color c);
+static bool full_grid(cgame g);
 
 /* ********************* Main functions *************************** */
 
@@ -109,22 +109,21 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   SDL_SetWindowPosition(win, 0, 0);
 
   // Allocate memory for all env. width & height (win, grid, cell)
-  env->width = malloc(3 * sizeof(uint));
-  env->height = malloc(3 * sizeof(uint));
+  env->width = malloc(NB_RESIZABLE_ELEMENTS * sizeof(uint));
+  env->height = malloc(NB_RESIZABLE_ELEMENTS * sizeof(uint));
 
   // Get screen size info (width & height) and update the environment
   update_env(win, env);
 
   // Init grid colors
-  env->colors = init_colors(ren, g);
+  env->colors = init_colors(g);
 
   // Allocate memory for textures array
-  env->nb_textures = 5; // Background, title, restart, quit, won
-  env->textures = malloc(env->nb_textures * sizeof(SDL_Texture *));
+  env->textures = malloc(NB_TEXTURES * sizeof(SDL_Texture *));
 
   // Init background
-  env->textures[BACKGROUND_TEXT] = IMG_LoadTexture(ren, BACKGROUND);
-  if (!env->textures[BACKGROUND_TEXT])
+  env->textures[BACKGROUND_IMG] = IMG_LoadTexture(ren, BACKGROUND);
+  if (!env->textures[BACKGROUND_IMG])
     ERROR("IMG_LoadTexture: %s\n", BACKGROUND);
 
   // Init text texture using squirk font
@@ -145,10 +144,14 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   SDL_Surface *won = TTF_RenderText_Blended(font, "YOU WON !", BLACK);
   env->textures[WON] = SDL_CreateTextureFromSurface(ren, won);
 
+  SDL_Surface *lost = TTF_RenderText_Blended(font, "YOU LOST !", BLACK);
+  env->textures[LOST] = SDL_CreateTextureFromSurface(ren, lost);
+
   SDL_FreeSurface(title);
   SDL_FreeSurface(restart);
   SDL_FreeSurface(quit);
   SDL_FreeSurface(won);
+  SDL_FreeSurface(lost);
   TTF_CloseFont(font);
 
   return env;
@@ -161,7 +164,7 @@ void render(SDL_Window *win, SDL_Renderer *ren, Env *env) {
   update_env(win, env);
 
   // Render background texture
-  SDL_RenderCopy(ren, env->textures[BACKGROUND_TEXT], NULL, NULL);
+  SDL_RenderCopy(ren, env->textures[BACKGROUND_IMG], NULL, NULL);
 
   // Render title, restart and quit
   render_const_textures(ren, env);
@@ -184,6 +187,18 @@ void render(SDL_Window *win, SDL_Renderer *ren, Env *env) {
     rect.y = (env->height[WINDOW] - rect.h) / 2;
     SDL_QueryTexture(env->textures[WON], NULL, NULL, NULL, NULL);
     SDL_RenderCopy(ren, env->textures[WON], NULL, &rect);
+  }
+
+  else if (state == LOSE) {
+    SDL_Rect rect;
+
+    // Render end game message (pos: grid center)
+    rect.w = env->width[GRID] / 2;
+    rect.h = 100;
+    rect.x = env->grid_start_x + env->width[GRID] / 4;
+    rect.y = (env->height[WINDOW] - rect.h) / 2;
+    SDL_QueryTexture(env->textures[LOST], NULL, NULL, NULL, NULL);
+    SDL_RenderCopy(ren, env->textures[LOST], NULL, &rect);
   }
 }
 
@@ -225,6 +240,9 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
       if (game_is_over(env->game))
         env->game_state = WIN;
 
+      else if (full_grid(env->game))
+        env->game_state = LOSE;
+
     } else if (click_under_grid(e, env)) {
 
       // Tapped on 'Restart'
@@ -245,11 +263,11 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
   else if (e->type == SDL_KEYDOWN) {
     switch (e->key.keysym.sym) {
     case SDLK_ESCAPE:
-      PRINT("DOMMAGE\n");
+      PRINT("SEE YOU!\n");
       return true;
       break;
     case SDLK_q:
-      PRINT("DOMMAGE\n");
+      PRINT("SEE YOU\n");
       return true;
       break;
     case SDLK_r:
@@ -280,8 +298,12 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
         game_play_one_move(env->game, c_cur);
 
       if (game_is_over(env->game)) {
-        PRINT("BRAVO\n");
+        PRINT("CONGRATS !\n");
         env->game_state = WIN;
+      }
+      else if (full_grid(env->game)){
+        PRINT("TOO BAD !\n");
+        env->game_state = LOSE;
       }
 
     } else if (click_under_grid(e, env)) {
@@ -296,7 +318,7 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
       // Clicked on 'QUIT'
       else if (e->button.x > env->grid_start_x + 3 * env->width[GRID] / 4 &&
                e->button.x < env->grid_start_x + env->width[GRID]) {
-        PRINT("DOMMAGE\n");
+        PRINT("SEE YOU\n");
         return true;
       }
     }
@@ -311,8 +333,8 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
 void clean(SDL_Window *win, SDL_Renderer *ren, Env *env) {
   game_delete(env->game);
 
-  for (uint text = 0; text < env->nb_textures; text++)
-    SDL_DestroyTexture(env->textures[text]);
+  for (uint t = 0; t < NB_TEXTURES; t++)
+    SDL_DestroyTexture(env->textures[t]);
 
   free(env->textures);
   free(env->width);
@@ -376,12 +398,12 @@ static void update_env(SDL_Window *win, Env *env) {
  * @param g a game instance
  * @return Gui_color* pointer
  */
-static Gui_color *init_colors(SDL_Renderer *ren, game g) {
+static Gui_color *init_colors(game g) {
 
   Gui_color *gui = malloc(sizeof(Gui_color));
   error(gui == NULL, "Pointer NULLL");
 
-  gui->grid_line = (SDL_Color){70, 70, 70, 255};
+  gui->grid_line = DIM_GREY;
 
   // Count number of colors in game
   uint nb_col = 0;
@@ -627,4 +649,23 @@ static bool click_under_grid(SDL_Event *e, Env *env) {
   return (e->button.y > env->grid_start_y + env->height[GRID] &&
           e->button.y <
               env->grid_start_y + env->height[GRID] + env->width[GRID] / 8);
+}
+
+/**
+ * @brief Checks if all the cells have the same color
+ * @param g the game
+ * @return false if a cell is different from the first cell
+ */
+static bool full_grid(cgame g) {
+  color c = game_cell_current_color(g, 0, 0);
+
+  for (int y = 0; y < game_height(g); y++) {
+    for (int x = 0; x < game_width(g); x++) {
+      if (game_cell_current_color(g, x, y) != c) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
