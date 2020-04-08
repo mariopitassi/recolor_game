@@ -25,9 +25,23 @@
 
 /* **************************************************************** */
 
-enum status { PLAYING, WIN, LOSE };
-enum texture { BACKGROUND_IMG, TITLE, RESTART, QUIT, WON, LOST, NB_TEXTURES };
-enum env_width_height { WINDOW, GRID, CELL, NB_RESIZABLE_ELEMENTS};
+enum status { MENU, PLAYING, WIN, LOSE };
+enum texture {
+  BACKGROUND_IMG,
+  TITLE,
+  RESTART,
+  QUIT,
+  WON,
+  LOST,
+  MENU_TEXT,
+  SOLVE,
+  DEF_GAME,
+  GAME_2N,
+  GAME_2S,
+  RAND_GAME,
+  NB_TEXTURES
+};
+enum env_width_height { WINDOW, GRID, CELL, NB_RESIZABLE_ELEMENTS };
 
 struct Gui_color {
   SDL_Color grid_line; // Grid's lines color (not used in this version)
@@ -37,10 +51,10 @@ struct Gui_color {
 struct Env_t {
   game game;
   status game_state;      // PLAYING || WIN
-  uint *width;            // Array of all env. width (window, grid, cell)
-  uint *height;           // Array of all env. height (window, grid, cell)
-  uint grid_start_x;      // Grid's starting point (x-axis)
-  uint grid_start_y;      // Grid's starting point (y-axis)
+  int *width;             // Array of all env. width (window, grid, cell)
+  int *height;            // Array of all env. height (window, grid, cell)
+  int grid_start_x;       // Grid's starting point (x-axis)
+  int grid_start_y;       // Grid's starting point (y-axis)
   Gui_color *colors;      // Look at Gui_color struct above
   SDL_Texture **textures; // Array of all constant textures
 };
@@ -51,13 +65,20 @@ static void usage(bool cond, char *err_mess);
 static void update_env(SDL_Window *win, Env *env);
 static Gui_color *init_colors(game g);
 static void render_const_textures(SDL_Renderer *ren, Env *env);
+static void render_menu(SDL_Renderer *ren, Env *env);
 static void render_status(SDL_Renderer *ren, Env *env);
+static void render_end_game(SDL_Renderer *ren, Env *env, status state);
 static bool click_on_grid(SDL_Event *e, Env *env);
 static bool click_under_grid(SDL_Event *e, Env *env);
+static bool click_over_grid(SDL_Event *e, Env *env);
 static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env);
 static void draw_cell(SDL_Window *win, SDL_Renderer *ren, Env *env, uint x,
                       uint y, color c);
 static bool full_grid(cgame g);
+#ifdef __ANDROID__
+static void copy_asset(char *src, char *dst);
+static game game_load_android(char *FILE);
+#endif
 
 /* ********************* Main functions *************************** */
 
@@ -68,11 +89,7 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   game g;
 
 #ifdef __ANDROID__
-  // Create a complete random game for the moment
-  // We'll create a sort of a menu to choose the game we want in the future
-  uint wrap = rand() % 2;
-  g = game_random_ext(6 + rand() % 15, 6 + rand() % 15, wrap, 4 + rand() % 13,
-                      12 + rand() % 100);
+  g = game_load_android("default_game.rec");
 #else
 
   // Raise usage if number of arguments are wrong ('3' | '>6')
@@ -147,11 +164,35 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   SDL_Surface *lost = TTF_RenderText_Blended(font, "YOU LOST !", BLACK);
   env->textures[LOST] = SDL_CreateTextureFromSurface(ren, lost);
 
+  SDL_Surface *menu = TTF_RenderText_Blended(font, "MENU", SILVER);
+  env->textures[MENU_TEXT] = SDL_CreateTextureFromSurface(ren, menu);
+
+  SDL_Surface *solve = TTF_RenderText_Blended(font, "SOLVE", SILVER);
+  env->textures[SOLVE] = SDL_CreateTextureFromSurface(ren, solve);
+
+  SDL_Surface *def_game = TTF_RenderText_Blended(font, "DEFAULT GAME", SILVER);
+  env->textures[DEF_GAME] = SDL_CreateTextureFromSurface(ren, def_game);
+
+  SDL_Surface *game_2s = TTF_RenderText_Blended(font, "GAME H 2S", SILVER);
+  env->textures[GAME_2S] = SDL_CreateTextureFromSurface(ren, game_2s);
+
+  SDL_Surface *game_2n = TTF_RenderText_Blended(font, "GAME H 2N", SILVER);
+  env->textures[GAME_2N] = SDL_CreateTextureFromSurface(ren, game_2n);
+
+  SDL_Surface *rand_game = TTF_RenderText_Blended(font, "RANDOM GAME", SILVER);
+  env->textures[RAND_GAME] = SDL_CreateTextureFromSurface(ren, rand_game);
+
   SDL_FreeSurface(title);
   SDL_FreeSurface(restart);
   SDL_FreeSurface(quit);
   SDL_FreeSurface(won);
   SDL_FreeSurface(lost);
+  SDL_FreeSurface(menu);
+  SDL_FreeSurface(solve);
+  SDL_FreeSurface(def_game);
+  SDL_FreeSurface(game_2s);
+  SDL_FreeSurface(game_2n);
+  SDL_FreeSurface(rand_game);
   TTF_CloseFont(font);
 
   return env;
@@ -163,42 +204,27 @@ void render(SDL_Window *win, SDL_Renderer *ren, Env *env) {
 
   update_env(win, env);
 
+  status state = env->game_state;
+
   // Render background texture
   SDL_RenderCopy(ren, env->textures[BACKGROUND_IMG], NULL, NULL);
 
   // Render title, restart and quit
   render_const_textures(ren, env);
 
-  // Render grid
-  draw_grid(win, ren, env);
+  if (state == MENU) {
+    render_menu(ren, env);
+  } else {
 
-  // Render nb_cur / nb_max
-  render_status(ren, env);
+    // Render grid
+    draw_grid(win, ren, env);
 
-  status state = env->game_state;
+    // Render nb_cur / nb_max
+    render_status(ren, env);
 
-  if (state == WIN) {
-    SDL_Rect rect;
-
-    // Render end game message (pos: grid center)
-    rect.w = env->width[GRID] / 2;
-    rect.h = 100;
-    rect.x = env->grid_start_x + env->width[GRID] / 4;
-    rect.y = (env->height[WINDOW] - rect.h) / 2;
-    SDL_QueryTexture(env->textures[WON], NULL, NULL, NULL, NULL);
-    SDL_RenderCopy(ren, env->textures[WON], NULL, &rect);
-  }
-
-  else if (state == LOSE) {
-    SDL_Rect rect;
-
-    // Render end game message (pos: grid center)
-    rect.w = env->width[GRID] / 2;
-    rect.h = 100;
-    rect.x = env->grid_start_x + env->width[GRID] / 4;
-    rect.y = (env->height[WINDOW] - rect.h) / 2;
-    SDL_QueryTexture(env->textures[LOST], NULL, NULL, NULL, NULL);
-    SDL_RenderCopy(ren, env->textures[LOST], NULL, &rect);
+    // Render end game message if game is won or lost
+    if (state == WIN || state == LOSE)
+      render_end_game(ren, env, state);
   }
 }
 
@@ -243,7 +269,60 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
       else if (full_grid(env->game))
         env->game_state = LOSE;
 
-    } else if (click_under_grid(e, env)) {
+    }
+
+    else if (click_on_grid(e, env) && env->game_state == MENU) {
+
+      game g;
+
+      if (button_y < env->grid_start_y + env->height[GRID] / 2) {
+
+        // Tapped on 'Default game'
+        if (button_x < env->grid_start_x + env->width[GRID] / 2)
+          g = game_load_android("default_game.rec");
+
+        // Tapped on 'Random game'
+        else {
+          uint w = 6 + (uint)rand() % 15;
+          uint h = 6 + (uint)rand() % 15;
+          bool wrap = (uint)rand() % 2;
+          uint max_color = 4 + (uint)rand() % 13;
+          uint max_moves = (max_color > 10) ? w + h + max_color : w + h;
+          g = game_random_ext(w, h, wrap, max_color, max_moves);
+        }
+      }
+
+      else {
+
+        // Tapped on 'Game_2S'
+        if (button_x < env->grid_start_x + env->width[GRID] / 2)
+          g = game_load_android("horizontal_game2S.rec");
+
+        // Tapped on 'Game_2N'
+        else
+          g = game_load_android("horizontal_game2N.rec");
+      }
+
+      free(env->colors->cells);
+      free(env->colors);
+      game_delete(env->game);
+
+      env->game = g;
+      env->colors = init_colors(env->game);
+
+      env->game_state = PLAYING;
+    }
+
+    else if (click_over_grid(e, env)) {
+
+      // Tapped on 'Menu'
+      if (button_x > env->grid_start_x &&
+          button_x < env->grid_start_x + env->width[GRID] / 4) {
+        env->game_state = (env->game_state == MENU) ? PLAYING : MENU;
+      }
+    }
+
+    else if (click_under_grid(e, env)) {
 
       // Tapped on 'Restart'
       if (button_x > env->grid_start_x &&
@@ -300,13 +379,66 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
       if (game_is_over(env->game)) {
         PRINT("CONGRATS !\n");
         env->game_state = WIN;
-      }
-      else if (full_grid(env->game)){
+      } else if (full_grid(env->game)) {
         PRINT("TOO BAD !\n");
         env->game_state = LOSE;
       }
 
-    } else if (click_under_grid(e, env)) {
+    }
+
+    else if (click_on_grid(e, env) && env->game_state == MENU) {
+
+      game g;
+
+      if (e->button.y < env->grid_start_y + env->height[GRID] / 2) {
+
+        // Clicked on 'Default game'
+        if (e->button.x < env->grid_start_x + env->width[GRID] / 2)
+          g = game_load("data/default_game.rec");
+
+        // Clicked on 'Random game'
+        else {
+          uint w = 6 + (uint)rand() % 15;
+          uint h = 6 + (uint)rand() % 15;
+          bool wrap = (uint)rand() % 2;
+          uint max_color = 4 + (uint)rand() % 13;
+          uint max_moves = (max_color > 10) ? w + h + max_color : w + h;
+          g = game_random_ext(w, h, wrap, max_color, max_moves);
+        }
+      }
+
+      else {
+
+        // Clicked on 'Game_2S'
+        if (e->button.x < env->grid_start_x + env->width[GRID] / 2)
+          g = game_load("data/horizontal_game2S.rec");
+
+        // Clicked on 'Game_2N'
+        else
+          g = game_load("data/horizontal_game2N.rec");
+      }
+
+      free(env->colors->cells);
+      free(env->colors);
+      game_delete(env->game);
+
+      env->game = g;
+      env->colors = init_colors(env->game);
+
+      env->game_state = PLAYING;
+    }
+
+    else if (click_over_grid(e, env)) {
+
+      // Clicked on 'Menu'
+      if (e->button.x > env->grid_start_x &&
+          e->button.x < env->grid_start_x + env->width[GRID] / 4) {
+        env->game_state = (env->game_state == MENU) ? PLAYING : MENU;
+      }
+
+    }
+
+    else if (click_under_grid(e, env)) {
 
       // Clicked on 'Restart'
       if (e->button.x > env->grid_start_x &&
@@ -518,27 +650,41 @@ static void render_const_textures(SDL_Renderer *ren, Env *env) {
   SDL_QueryTexture(env->textures[TITLE], NULL, NULL, NULL, NULL);
   SDL_RenderCopy(ren, env->textures[TITLE], NULL, &rect);
 
-  // Save height for drawing seperation lines
+  // Save height for drawing separation lines
   int h = rect.h;
 
-  // Restart "button"
+  // Menu "button"
   rect.w = rect.w / 4;
   rect.h = rect.w / 2;
+  if (rect.h > env->grid_start_y / 2)
+    rect.h = env->grid_start_y / 2;
   rect.x = env->grid_start_x + rect.w / 2;
+  rect.y = env->grid_start_y - 3 * rect.h / 2;
+  SDL_QueryTexture(env->textures[MENU_TEXT], NULL, NULL, NULL, NULL);
+  SDL_RenderCopy(ren, env->textures[MENU_TEXT], NULL, &rect);
+
+  // Solve "button"
+  rect.x = env->grid_start_x + 3 * env->width[GRID] / 4 + rect.w / 2;
+  rect.y = env->grid_start_y - 3 * rect.h / 2;
+  SDL_QueryTexture(env->textures[SOLVE], NULL, NULL, NULL, NULL);
+  SDL_RenderCopy(ren, env->textures[SOLVE], NULL, &rect);
+
+  // Quit "button" (same w, h and y than 'Restart')
   rect.y = env->grid_start_y + env->height[GRID] + rect.h / 2;
   if (rect.y + rect.h >= env->height[WINDOW]) {
     rect.h = env->grid_start_y / 2;
     rect.y = env->grid_start_y + env->height[GRID] + rect.h / 2;
   }
-  SDL_QueryTexture(env->textures[RESTART], NULL, NULL, NULL, NULL);
-  SDL_RenderCopy(ren, env->textures[RESTART], NULL, &rect);
-
-  // Quit "button" (same w, h and y than 'Restart')
-  rect.x = env->grid_start_x + 3 * env->width[GRID] / 4 + rect.w / 2;
   SDL_QueryTexture(env->textures[QUIT], NULL, NULL, NULL, NULL);
   SDL_RenderCopy(ren, env->textures[QUIT], NULL, &rect);
 
-  // Draw lines to seperate them
+  // Restart "button"
+  rect.x = env->grid_start_x + rect.w / 2;
+  rect.y = env->grid_start_y + env->height[GRID] + rect.h / 2;
+  SDL_QueryTexture(env->textures[RESTART], NULL, NULL, NULL, NULL);
+  SDL_RenderCopy(ren, env->textures[RESTART], NULL, &rect);
+
+  // Draw lines to seperate : Restart | nb_cur/nb_max | Quit
   int start_line_x = env->grid_start_x + env->width[GRID] / 4;
   int start_line_y = env->grid_start_y + env->height[GRID];
   int end_line_x = env->grid_start_x + env->width[GRID] / 4;
@@ -608,6 +754,78 @@ static void render_status(SDL_Renderer *ren, Env *env) {
 }
 
 /**
+ * @brief Renders a menu where you can load all the games
+ *
+ * @param ren a renderer
+ * @param env an environment
+ */
+static void render_menu(SDL_Renderer *ren, Env *env) {
+  SDL_Rect rect;
+
+  // Set default game's button position and size then renders it
+  rect.w = env->width[GRID] / 4;
+  rect.h = env->height[GRID] / 8;
+  rect.x = env->grid_start_x + env->width[GRID] / 8;
+  rect.y = env->grid_start_y + env->height[GRID] / 4 - rect.h / 2;
+  SDL_QueryTexture(env->textures[DEF_GAME], NULL, NULL, NULL, NULL);
+  SDL_RenderCopy(ren, env->textures[DEF_GAME], NULL, &rect);
+
+  // Random game "button"
+  rect.x = rect.x + env->width[GRID] / 2;
+  SDL_QueryTexture(env->textures[RAND_GAME], NULL, NULL, NULL, NULL);
+  SDL_RenderCopy(ren, env->textures[RAND_GAME], NULL, &rect);
+
+  // Horizontal_game2N "button"
+  rect.y = rect.y + env->height[GRID] / 2;
+  SDL_QueryTexture(env->textures[GAME_2N], NULL, NULL, NULL, NULL);
+  SDL_RenderCopy(ren, env->textures[GAME_2N], NULL, &rect);
+
+  // Horizontal_game2S "button"
+  rect.x = rect.x - env->width[GRID] / 2;
+  SDL_QueryTexture(env->textures[GAME_2S], NULL, NULL, NULL, NULL);
+  SDL_RenderCopy(ren, env->textures[GAME_2S], NULL, &rect);
+
+  // Draw lines to seperate different games
+  int start_line_x = env->grid_start_x + env->width[GRID] / 2;
+  int start_line_y = env->grid_start_y;
+  int end_line_x = start_line_x;
+  int end_line_y = env->grid_start_y + env->height[GRID];
+  SDL_RenderDrawLine(ren, start_line_x, start_line_y, end_line_x, end_line_y);
+
+  start_line_x = env->grid_start_x;
+  start_line_y = env->grid_start_y + env->height[GRID] / 2;
+  end_line_x = env->grid_start_x + env->width[GRID];
+  end_line_y = start_line_y;
+  SDL_RenderDrawLine(ren, start_line_x, start_line_y, end_line_x, end_line_y);
+}
+
+/**
+ * @brief Renders 'YOU LOSE' || 'YOU WON' when the grid is full
+ * (state == WIN || state == LOSE)
+ *
+ * @param ren a renderer
+ * @param env an environment
+ * @param state the game's state (WIN || LOSE)
+ */
+static void render_end_game(SDL_Renderer *ren, Env *env, status state) {
+  SDL_Rect rect;
+
+  // Render end game message (pos: grid center)
+  rect.w = env->width[GRID] / 2;
+  rect.h = 100;
+  rect.x = env->grid_start_x + env->width[GRID] / 4;
+  rect.y = (env->height[WINDOW] - rect.h) / 2;
+
+  if (state == WIN) {
+    SDL_QueryTexture(env->textures[WON], NULL, NULL, NULL, NULL);
+    SDL_RenderCopy(ren, env->textures[WON], NULL, &rect);
+  } else if (state == LOSE) {
+    SDL_QueryTexture(env->textures[LOST], NULL, NULL, NULL, NULL);
+    SDL_RenderCopy(ren, env->textures[LOST], NULL, &rect);
+  }
+}
+
+/**
  * @brief Checks if a click is on the grid or not.
  *
  * @param e pointer to an SDL_Event
@@ -652,6 +870,24 @@ static bool click_under_grid(SDL_Event *e, Env *env) {
 }
 
 /**
+ * @brief Checks if a click is over the grid (in the menu | title | solve area)
+ *
+ * @param e pointer to an SDL_Event
+ * @param env pointer to an environment
+ * @return true if click is over the grid
+ * @return false otherwise
+ */
+static bool click_over_grid(SDL_Event *e, Env *env) {
+#ifdef __ANDROID__
+  float button_y = e->tfinger.y * env->height[WINDOW];
+  return (button_y < env->grid_start_y &&
+          button_y > env->grid_start_y - env->width[GRID] / 8);
+#endif
+  return (e->button.y < env->grid_start_y &&
+          e->button.y > env->grid_start_y - env->width[GRID] / 8);
+}
+
+/**
  * @brief Checks if all the cells have the same color
  * @param g the game
  * @return false if a cell is different from the first cell
@@ -669,3 +905,46 @@ static bool full_grid(cgame g) {
 
   return true;
 }
+
+/* ***** copy file from assets/ to Android internal storage ***** */
+
+#ifdef __ANDROID__
+static void copy_asset(char *src, char *dst) {
+  SDL_RWops *file = SDL_RWFromFile(src, "r");
+  if (!file)
+    ERROR("[ERROR] SDL_RWFromFile: %s\n", src);
+  int size = SDL_RWsize(file);
+  PRINT("copy file %s (%d bytes) into %s\n", src, size, dst);
+  char *buf = (char *)malloc(size + 1);
+  if (!buf)
+    ERROR("[ERROR] malloc\n");
+  int r = SDL_RWread(file, buf, 1, size);
+  PRINT("read %d\n", r);
+  if (r != size)
+    ERROR("[ERROR] fail to read all file (%d bytes)\n", r);
+  FILE *out = fopen(dst, "w+");
+  if (!out)
+    ERROR("[ERROR] fail to create file %s\n", dst);
+  int w = fwrite(buf, 1, r, out);
+  if (r != w)
+    ERROR("[ERROR] fail to write all file (%d bytes)\n", w);
+  fclose(out);
+  SDL_RWclose(file);
+  free(buf);
+}
+/**
+ * @brief Loads a game for android devices
+ *
+ * @param FILE the game to be load
+ * @return the loaded game
+ */
+static game game_load_android(char *FILE) {
+  const char *dir = SDL_AndroidGetInternalStoragePath();
+  /* const char * dir = SDL_AndroidGetExternalStoragePath(); */
+  char filename[1024];
+  sprintf(filename, "%s/%s", dir, FILE);
+  copy_asset(FILE, filename);
+  game g = game_load(filename);
+  return g;
+}
+#endif
