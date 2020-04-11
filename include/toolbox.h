@@ -73,4 +73,8 @@ extern SList asde_slist_concat(SList L1, SList L2);
 // reverses a SList and returns the new list
 extern SList asde_slist_reverse(SList L);
 
+// Returns a game according to the arguments passed
+// Raise usage if incorrect number of arguments
+game game_from_arg(int argc, char *argv[]);
+
 #endif /* TOOLBOX_H */

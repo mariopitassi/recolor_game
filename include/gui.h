@@ -81,6 +81,7 @@ typedef struct Env_t Env;
 typedef enum status status;
 typedef struct Text Text;
 typedef struct Gui_color Gui_color;
+typedef struct Gui_solution Gui_solution;
 
 Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]);
 void render(SDL_Window *win, SDL_Renderer *ren, Env *env);

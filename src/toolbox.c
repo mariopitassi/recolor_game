@@ -1,4 +1,5 @@
 #include "toolbox.h"
+#include "game_rand.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -212,4 +213,38 @@ SList asde_slist_reverse(SList L) {
   }
   return asde_slist_append(asde_slist_reverse(asde_slist_next(L)),
                            asde_slist_data(L));
+}
+
+/* ****** USAGE FOR GAME_FROM_ARG ***** */
+static void raise_usage(bool cond, char *argv[]) {
+  if (cond) {
+    fprintf(stderr,
+            "Usage: %s [<width> <height> <nb_max_moves> [nb_max_color [S|N]]\n",
+            argv[0]);
+    exit(EXIT_FAILURE);
+  }
+}
+
+game game_from_arg(int argc, char *argv[]) {
+  raise_usage(argc == 3 || argc > 6, argv);
+
+  game g;
+
+  if (argc == 1)
+    g = game_load("data/default_game.rec");
+  else if (argc == 2)
+    g = game_load(argv[1]);
+  else {
+    uint w = atoi(argv[1]);
+    uint h = atoi(argv[2]);
+    uint mov_max = atoi(argv[3]);
+
+    uint nb_max_color =
+        (argc >= 5) ? (atoi(argv[4]) < 16 ? atoi(argv[4]) : 16) : 4;
+
+    bool is_wrap = (argc == 6) ? (argv[5][0] == 'S') : false;
+
+    g = game_random_ext(w, h, is_wrap, nb_max_color, mov_max);
+  }
+  return g;
 }

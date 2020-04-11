@@ -33,14 +33,18 @@ enum texture {
   QUIT,
   WON,
   LOST,
-  MENU_TEXT,
-  SOLVE,
-  DEF_GAME,
-  GAME_2N,
-  GAME_2S,
+  GAMES,
+  SOLVE_S,
+  SOLVE_L,
+  SOLVE_R,
+  DEF_GAME, // EASY Game
+  GAME_2N,  // HARD Game
+  GAME_2S,  // MEDIUM Game
   RAND_GAME,
+  X,
   NB_TEXTURES
 };
+
 enum env_width_height { WINDOW, GRID, CELL, NB_RESIZABLE_ELEMENTS };
 
 struct Gui_color {
@@ -48,8 +52,15 @@ struct Gui_color {
   SDL_Color *cells;    // Grid's cells colors
 };
 
+struct Gui_solution {
+  sol s;
+  uint index;
+};
+
 struct Env_t {
   game game;
+  Gui_solution *solution;
+  bool solving;
   status game_state;      // PLAYING || WIN
   int *width;             // Array of all env. width (window, grid, cell)
   int *height;            // Array of all env. height (window, grid, cell)
@@ -61,13 +72,13 @@ struct Env_t {
 
 /* **** Static functions (decription below main functions) **** */
 
-static void usage(bool cond, char *err_mess);
 static void update_env(SDL_Window *win, Env *env);
 static Gui_color *init_colors(game g);
 static void render_const_textures(SDL_Renderer *ren, Env *env);
 static void render_menu(SDL_Renderer *ren, Env *env);
 static void render_status(SDL_Renderer *ren, Env *env);
 static void render_end_game(SDL_Renderer *ren, Env *env, status state);
+static void render_solution(SDL_Renderer *ren, Env *env);
 static bool click_on_grid(SDL_Event *e, Env *env);
 static bool click_under_grid(SDL_Event *e, Env *env);
 static bool click_over_grid(SDL_Event *e, Env *env);
@@ -75,6 +86,8 @@ static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env);
 static void draw_cell(SDL_Window *win, SDL_Renderer *ren, Env *env, uint x,
                       uint y, color c);
 static bool full_grid(cgame g);
+static bool winning_solution(cgame g, Gui_solution *s);
+static sol sol_horizontal2N();
 #ifdef __ANDROID__
 static void copy_asset(char *src, char *dst);
 static game game_load_android(char *FILE);
@@ -91,26 +104,7 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
 #ifdef __ANDROID__
   g = game_load_android("default_game.rec");
 #else
-
-  // Raise usage if number of arguments are wrong ('3' | '>6')
-  usage(argc == 3 || argc > 6,
-        "./recolor_sdl <w*> <h*> <nb_mov_max*> <nb_max_color> <S|N>");
-
-  // Handle executable arguments
-  if (argc == 1) {
-    g = game_load("data/default_game.rec");
-  } else if (argc == 2) {
-    g = game_load(argv[1]);
-  } else {
-
-    uint w = atoi(argv[1]);
-    uint h = atoi(argv[2]);
-    uint mov_max = atoi(argv[3]);
-    uint max_col = (argc >= 5) ? (atoi(argv[4]) < 16 ? atoi(argv[4]) : 16) : 4;
-    bool is_wrap = (argc == 6) ? (argv[5][0] == 'S') : false;
-
-    g = game_random_ext(w, h, is_wrap, max_col, mov_max);
-  }
+  g = game_from_arg(argc, argv);
 #endif
 
   // Init environment
@@ -119,6 +113,12 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
 
   env->game = g;
   env->game_state = PLAYING;
+
+  // Init solution
+  env->solution = malloc(sizeof(Gui_solution));
+  env->solution->s = find_min_gui(g);
+  env->solution->index = 0;
+  env->solving = false;
 
   PRINT("Press 'ESC' or 'q' to quit.\nPress 'r' to restart\nGood luck !\n");
 
@@ -164,35 +164,47 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   SDL_Surface *lost = TTF_RenderText_Blended(font, "YOU LOST !", BLACK);
   env->textures[LOST] = SDL_CreateTextureFromSurface(ren, lost);
 
-  SDL_Surface *menu = TTF_RenderText_Blended(font, "MENU", SILVER);
-  env->textures[MENU_TEXT] = SDL_CreateTextureFromSurface(ren, menu);
+  SDL_Surface *games = TTF_RenderText_Blended(font, "GAMES", SILVER);
+  env->textures[GAMES] = SDL_CreateTextureFromSurface(ren, games);
 
-  SDL_Surface *solve = TTF_RenderText_Blended(font, "SOLVE", SILVER);
-  env->textures[SOLVE] = SDL_CreateTextureFromSurface(ren, solve);
+  SDL_Surface *solve_s = TTF_RenderText_Blended(font, "SOLVE", SILVER);
+  env->textures[SOLVE_S] = SDL_CreateTextureFromSurface(ren, solve_s);
 
-  SDL_Surface *def_game = TTF_RenderText_Blended(font, "DEFAULT GAME", SILVER);
+  SDL_Surface *solve_l = TTF_RenderText_Blended(font, "SOLVE", LIME);
+  env->textures[SOLVE_L] = SDL_CreateTextureFromSurface(ren, solve_l);
+
+  SDL_Surface *solve_r = TTF_RenderText_Blended(font, "SOLVE", RED_SDL);
+  env->textures[SOLVE_R] = SDL_CreateTextureFromSurface(ren, solve_r);
+
+  SDL_Surface *def_game = TTF_RenderText_Blended(font, "EASY", GREEN_SDL);
   env->textures[DEF_GAME] = SDL_CreateTextureFromSurface(ren, def_game);
 
-  SDL_Surface *game_2s = TTF_RenderText_Blended(font, "GAME H 2S", SILVER);
+  SDL_Surface *game_2s = TTF_RenderText_Blended(font, "MEDIUM", ORANGE);
   env->textures[GAME_2S] = SDL_CreateTextureFromSurface(ren, game_2s);
 
-  SDL_Surface *game_2n = TTF_RenderText_Blended(font, "GAME H 2N", SILVER);
+  SDL_Surface *game_2n = TTF_RenderText_Blended(font, "HARD", RED_SDL);
   env->textures[GAME_2N] = SDL_CreateTextureFromSurface(ren, game_2n);
 
-  SDL_Surface *rand_game = TTF_RenderText_Blended(font, "RANDOM GAME", SILVER);
+  SDL_Surface *rand_game = TTF_RenderText_Blended(font, "RANDOM", SILVER);
   env->textures[RAND_GAME] = SDL_CreateTextureFromSurface(ren, rand_game);
+
+  SDL_Surface *s_sol = TTF_RenderText_Blended(font, "x", BLACK);
+  env->textures[X] = SDL_CreateTextureFromSurface(ren, s_sol);
 
   SDL_FreeSurface(title);
   SDL_FreeSurface(restart);
   SDL_FreeSurface(quit);
   SDL_FreeSurface(won);
   SDL_FreeSurface(lost);
-  SDL_FreeSurface(menu);
-  SDL_FreeSurface(solve);
+  SDL_FreeSurface(games);
+  SDL_FreeSurface(solve_s);
+  SDL_FreeSurface(solve_l);
+  SDL_FreeSurface(solve_r);
   SDL_FreeSurface(def_game);
   SDL_FreeSurface(game_2s);
   SDL_FreeSurface(game_2n);
   SDL_FreeSurface(rand_game);
+  SDL_FreeSurface(s_sol);
   TTF_CloseFont(font);
 
   return env;
@@ -209,13 +221,15 @@ void render(SDL_Window *win, SDL_Renderer *ren, Env *env) {
   // Render background texture
   SDL_RenderCopy(ren, env->textures[BACKGROUND_IMG], NULL, NULL);
 
-  // Render title, restart and quit
+  // Render games button, title, solve, restart and quit
   render_const_textures(ren, env);
 
   if (state == MENU) {
+    // Render menu (where you can choose the game you want to play)
     render_menu(ren, env);
-  } else {
+  }
 
+  else {
     // Render grid
     draw_grid(win, ren, env);
 
@@ -225,6 +239,10 @@ void render(SDL_Window *win, SDL_Renderer *ren, Env *env) {
     // Render end game message if game is won or lost
     if (state == WIN || state == LOSE)
       render_end_game(ren, env, state);
+
+    // Render 'X' on solution cells if solver activated
+    else if (env->solving)
+      render_solution(ren, env);
   }
 }
 
@@ -260,65 +278,94 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
       color c_cur = game_cell_current_color(env->game, x, y);
 
       // For more fun just play color != than current cell (0,0)
-      if (c_cur != game_cell_current_color(env->game, 0, 0))
+      if (c_cur != game_cell_current_color(env->game, 0, 0)) {
         game_play_one_move(env->game, c_cur);
+        // Increase solution index by 1 to avoid recalculating it if player
+        // played a solution move
+        env->solution->index += 1;
+      }
 
-      if (game_is_over(env->game))
+      if (game_is_over(env->game)) {
+        env->solving = false;
         env->game_state = WIN;
-
-      else if (full_grid(env->game))
+      } else if (full_grid(env->game)) {
+        env->solving = false;
         env->game_state = LOSE;
-
+      }
     }
 
     else if (click_on_grid(e, env) && env->game_state == MENU) {
 
       game g;
+      sol s;
 
       if (button_y < env->grid_start_y + env->height[GRID] / 2) {
 
-        // Tapped on 'Default game'
-        if (button_x < env->grid_start_x + env->width[GRID] / 2)
-          g = game_load_android("default_game.rec");
+        // Tapped on 'Random' game
+        if (button_x < env->grid_start_x + env->width[GRID] / 2) {
 
-        // Tapped on 'Random game'
-        else {
+          // Init a random game with maximum height and width of 20,
+          // 16 maximum colors, random wrapping and maximum moves will be
+          // defined by find_min_gui if solution found, w+h+max_color otherwise
           uint w = 6 + (uint)rand() % 15;
           uint h = 6 + (uint)rand() % 15;
           bool wrap = (uint)rand() % 2;
           uint max_color = 4 + (uint)rand() % 13;
-          uint max_moves = (max_color > 10) ? w + h + max_color : w + h;
+          uint max_moves = w + h + max_color;
+
           g = game_random_ext(w, h, wrap, max_color, max_moves);
+          s = find_min_gui(g);
+
+          if (s->nb_moves > 0)
+            game_set_max_moves(g, s->nb_moves);
+        }
+        // Tapped on 'Easy' game
+        else {
+          g = game_load_android("default_game.rec");
+          s = find_one_gui(g, game_nb_moves_max(g));
         }
       }
 
       else {
 
-        // Tapped on 'Game_2S'
-        if (button_x < env->grid_start_x + env->width[GRID] / 2)
+        // Tapped on 'Medium' game
+        if (button_x < env->grid_start_x + env->width[GRID] / 2) {
           g = game_load_android("horizontal_game2S.rec");
-
-        // Tapped on 'Game_2N'
-        else
+          s = find_one_gui(g, game_nb_moves_max(g));
+        }
+        // Tapped on 'Hard' game
+        else {
           g = game_load_android("horizontal_game2N.rec");
+          s = sol_horizontal2N();
+        }
       }
 
+      // Clean previous game env
       free(env->colors->cells);
       free(env->colors);
+      free_sol(env->solution->s);
       game_delete(env->game);
 
+      // Init created game env
       env->game = g;
+      env->solution->s = s;
+      env->solution->index = 0;
+      env->solving = false;
       env->colors = init_colors(env->game);
-
       env->game_state = PLAYING;
     }
 
     else if (click_over_grid(e, env)) {
 
-      // Tapped on 'Menu'
+      // Tapped on 'Games'
       if (button_x > env->grid_start_x &&
           button_x < env->grid_start_x + env->width[GRID] / 4) {
         env->game_state = (env->game_state == MENU) ? PLAYING : MENU;
+      }
+      // Tapped on 'Solve
+      if ((button_x > env->grid_start_x + 3 * env->width[GRID] / 4 &&
+           button_x < env->grid_start_x + env->width[GRID])) {
+        env->solving = (env->solving == false) ? true : false;
       }
     }
 
@@ -328,9 +375,10 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
       if (button_x > env->grid_start_x &&
           button_x < env->grid_start_x + env->width[GRID] / 4) {
         game_restart(env->game);
+        env->solution->index = 0;
+        env->solving = false;
         env->game_state = PLAYING;
       }
-
       // Tapped on 'Quit'
       else
         return (button_x > env->grid_start_x + 3 * env->width[GRID] / 4 &&
@@ -338,23 +386,6 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
     }
   }
 #else
-
-  else if (e->type == SDL_KEYDOWN) {
-    switch (e->key.keysym.sym) {
-    case SDLK_ESCAPE:
-      PRINT("SEE YOU!\n");
-      return true;
-      break;
-    case SDLK_q:
-      PRINT("SEE YOU\n");
-      return true;
-      break;
-    case SDLK_r:
-      game_restart(env->game);
-      env->game_state = PLAYING;
-      break;
-    }
-  }
 
   // Clicked on screen
   else if (e->type == SDL_MOUSEBUTTONUP) {
@@ -373,14 +404,20 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
       color c_cur = game_cell_current_color(env->game, x, y);
 
       // For more fun just play color != than current cell (0,0)
-      if (c_cur != game_cell_current_color(env->game, 0, 0))
+      if (c_cur != game_cell_current_color(env->game, 0, 0)) {
         game_play_one_move(env->game, c_cur);
+        // Increase solution index by 1 to avoid recalculating it if player
+        // played a solution move
+        env->solution->index += 1;
+      }
 
       if (game_is_over(env->game)) {
         PRINT("CONGRATS !\n");
+        env->solving = false;
         env->game_state = WIN;
       } else if (full_grid(env->game)) {
         PRINT("TOO BAD !\n");
+        env->solving = false;
         env->game_state = LOSE;
       }
 
@@ -389,53 +426,79 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
     else if (click_on_grid(e, env) && env->game_state == MENU) {
 
       game g;
+      sol s;
 
       if (e->button.y < env->grid_start_y + env->height[GRID] / 2) {
 
-        // Clicked on 'Default game'
-        if (e->button.x < env->grid_start_x + env->width[GRID] / 2)
-          g = game_load("data/default_game.rec");
+        // Clicked on 'Random' game
+        if (e->button.x < env->grid_start_x + env->width[GRID] / 2) {
 
-        // Clicked on 'Random game'
-        else {
+          // Init a random game with maximum height and width of 20,
+          // 16 maximum colors, random wrapping and maximum moves will be
+          // defined by find_min_gui if solution found, w+h+max_color otherwise
           uint w = 6 + (uint)rand() % 15;
           uint h = 6 + (uint)rand() % 15;
           bool wrap = (uint)rand() % 2;
           uint max_color = 4 + (uint)rand() % 13;
-          uint max_moves = (max_color > 10) ? w + h + max_color : w + h;
+          uint max_moves = w + h + max_color;
+
           g = game_random_ext(w, h, wrap, max_color, max_moves);
+          s = find_min_gui(g);
+
+          if (s->nb_moves > 0)
+            game_set_max_moves(g, s->nb_moves);
+        }
+
+        // Clicked on 'Easy' game
+        else {
+          g = game_load("data/default_game.rec");
+          s = find_one_gui(g, game_nb_moves_max(g));
         }
       }
 
       else {
 
-        // Clicked on 'Game_2S'
-        if (e->button.x < env->grid_start_x + env->width[GRID] / 2)
+        // Clicked on 'Medium' game
+        if (e->button.x < env->grid_start_x + env->width[GRID] / 2) {
           g = game_load("data/horizontal_game2S.rec");
+          s = find_one_gui(g, game_nb_moves_max(g));
+        }
 
-        // Clicked on 'Game_2N'
-        else
+        // Clicked on 'Hard' game
+        else {
           g = game_load("data/horizontal_game2N.rec");
+          s = sol_horizontal2N();
+        }
       }
 
+      // Clean previous game env
       free(env->colors->cells);
       free(env->colors);
+      free_sol(env->solution->s);
       game_delete(env->game);
 
+      // Init created game env
       env->game = g;
+      env->solution->s = s;
+      env->solution->index = 0;
+      env->solving = false;
       env->colors = init_colors(env->game);
-
       env->game_state = PLAYING;
     }
 
     else if (click_over_grid(e, env)) {
 
-      // Clicked on 'Menu'
+      // Clicked on 'Games'
       if (e->button.x > env->grid_start_x &&
           e->button.x < env->grid_start_x + env->width[GRID] / 4) {
         env->game_state = (env->game_state == MENU) ? PLAYING : MENU;
       }
 
+      // Clicked on 'Solve'
+      else if (e->button.x > env->grid_start_x + 3 * env->width[GRID] / 4 &&
+               e->button.x < env->grid_start_x + env->width[GRID]) {
+        env->solving = (env->solving == false) ? true : false;
+      }
     }
 
     else if (click_under_grid(e, env)) {
@@ -444,6 +507,8 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
       if (e->button.x > env->grid_start_x &&
           e->button.x < env->grid_start_x + env->width[GRID] / 4) {
         game_restart(env->game);
+        env->solution->index = 0;
+        env->solving = false;
         env->game_state = PLAYING;
       }
 
@@ -456,6 +521,23 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
     }
   }
 #endif
+
+  else if (e->type == SDL_KEYDOWN) {
+    switch (e->key.keysym.sym) {
+    case SDLK_ESCAPE:
+      PRINT("SEE YOU!\n");
+      return true;
+      break;
+    case SDLK_q:
+      PRINT("SEE YOU\n");
+      return true;
+      break;
+    case SDLK_r:
+      game_restart(env->game);
+      env->game_state = PLAYING;
+      break;
+    }
+  }
 
   return false;
 }
@@ -473,18 +555,12 @@ void clean(SDL_Window *win, SDL_Renderer *ren, Env *env) {
   free(env->height);
   free(env->colors->cells);
   free(env->colors);
+  free_sol(env->solution->s);
+  free(env->solution);
   free(env);
 }
 
 /* ************* Static functions description & code *************** */
-
-// Basic usage function
-static void usage(bool cond, char *err_mess) {
-  if (cond) {
-    fprintf(stderr, "Usage: %s \n\n", err_mess);
-    exit(EXIT_FAILURE);
-  }
-}
 
 /**
  * @brief Update some environment variables according to window's size for
@@ -647,27 +723,34 @@ static void render_const_textures(SDL_Renderer *ren, Env *env) {
                                 // window and grid
   rect.x = env->grid_start_x + (env->width[GRID] / 4);
   rect.y = env->grid_start_y - rect.h;
-  SDL_QueryTexture(env->textures[TITLE], NULL, NULL, NULL, NULL);
+  // SDL_QueryTexture(env->textures[TITLE], NULL, NULL, NULL, NULL);
   SDL_RenderCopy(ren, env->textures[TITLE], NULL, &rect);
 
   // Save height for drawing separation lines
   int h = rect.h;
 
-  // Menu "button"
+  // Games "button"
   rect.w = rect.w / 4;
   rect.h = rect.w / 2;
   if (rect.h > env->grid_start_y / 2)
     rect.h = env->grid_start_y / 2;
   rect.x = env->grid_start_x + rect.w / 2;
   rect.y = env->grid_start_y - 3 * rect.h / 2;
-  SDL_QueryTexture(env->textures[MENU_TEXT], NULL, NULL, NULL, NULL);
-  SDL_RenderCopy(ren, env->textures[MENU_TEXT], NULL, &rect);
+  SDL_RenderCopy(ren, env->textures[GAMES], NULL, &rect);
 
-  // Solve "button"
+  // Solve "button", Color change according to the solution state
+  // SILVER if solver not activated
+  // LIME if solver activated & solution found
+  // RED if solver activated & no solution found (just gonna blink)
   rect.x = env->grid_start_x + 3 * env->width[GRID] / 4 + rect.w / 2;
   rect.y = env->grid_start_y - 3 * rect.h / 2;
-  SDL_QueryTexture(env->textures[SOLVE], NULL, NULL, NULL, NULL);
-  SDL_RenderCopy(ren, env->textures[SOLVE], NULL, &rect);
+  if (env->solving && winning_solution(env->game, env->solution)) {
+    SDL_RenderCopy(ren, env->textures[SOLVE_L], NULL, &rect);
+  } else if (env->solving && !winning_solution(env->game, env->solution)) {
+    SDL_RenderCopy(ren, env->textures[SOLVE_R], NULL, &rect);
+  } else {
+    SDL_RenderCopy(ren, env->textures[SOLVE_S], NULL, &rect);
+  }
 
   // Quit "button" (same w, h and y than 'Restart')
   rect.y = env->grid_start_y + env->height[GRID] + rect.h / 2;
@@ -675,14 +758,15 @@ static void render_const_textures(SDL_Renderer *ren, Env *env) {
     rect.h = env->grid_start_y / 2;
     rect.y = env->grid_start_y + env->height[GRID] + rect.h / 2;
   }
-  SDL_QueryTexture(env->textures[QUIT], NULL, NULL, NULL, NULL);
   SDL_RenderCopy(ren, env->textures[QUIT], NULL, &rect);
 
   // Restart "button"
   rect.x = env->grid_start_x + rect.w / 2;
   rect.y = env->grid_start_y + env->height[GRID] + rect.h / 2;
-  SDL_QueryTexture(env->textures[RESTART], NULL, NULL, NULL, NULL);
   SDL_RenderCopy(ren, env->textures[RESTART], NULL, &rect);
+
+  SDL_Color line_color = env->colors->grid_line;
+  SDL_SetRenderDrawColor(ren, line_color.r, line_color.g, line_color.b, 255);
 
   // Draw lines to seperate : Restart | nb_cur/nb_max | Quit
   int start_line_x = env->grid_start_x + env->width[GRID] / 4;
@@ -762,27 +846,23 @@ static void render_status(SDL_Renderer *ren, Env *env) {
 static void render_menu(SDL_Renderer *ren, Env *env) {
   SDL_Rect rect;
 
-  // Set default game's button position and size then renders it
+  // Set random game's button position and size then renders it
   rect.w = env->width[GRID] / 4;
   rect.h = env->height[GRID] / 8;
   rect.x = env->grid_start_x + env->width[GRID] / 8;
   rect.y = env->grid_start_y + env->height[GRID] / 4 - rect.h / 2;
-  SDL_QueryTexture(env->textures[DEF_GAME], NULL, NULL, NULL, NULL);
-  SDL_RenderCopy(ren, env->textures[DEF_GAME], NULL, &rect);
-
-  // Random game "button"
-  rect.x = rect.x + env->width[GRID] / 2;
-  SDL_QueryTexture(env->textures[RAND_GAME], NULL, NULL, NULL, NULL);
   SDL_RenderCopy(ren, env->textures[RAND_GAME], NULL, &rect);
 
-  // Horizontal_game2N "button"
+  // Easy game "button"
+  rect.x = rect.x + env->width[GRID] / 2;
+  SDL_RenderCopy(ren, env->textures[DEF_GAME], NULL, &rect);
+
+  // Medium "button"
   rect.y = rect.y + env->height[GRID] / 2;
-  SDL_QueryTexture(env->textures[GAME_2N], NULL, NULL, NULL, NULL);
   SDL_RenderCopy(ren, env->textures[GAME_2N], NULL, &rect);
 
-  // Horizontal_game2S "button"
+  // Hard "button"
   rect.x = rect.x - env->width[GRID] / 2;
-  SDL_QueryTexture(env->textures[GAME_2S], NULL, NULL, NULL, NULL);
   SDL_RenderCopy(ren, env->textures[GAME_2S], NULL, &rect);
 
   // Draw lines to seperate different games
@@ -897,13 +977,129 @@ static bool full_grid(cgame g) {
 
   for (int y = 0; y < game_height(g); y++) {
     for (int x = 0; x < game_width(g); x++) {
-      if (game_cell_current_color(g, x, y) != c) {
+      if (game_cell_current_color(g, x, y) != c)
         return false;
-      }
+    }
+  }
+  return true;
+}
+
+/**
+ * @brief Renders 'X' on each solution cells
+ * Renders nothing and stop solver if no solution found
+ *
+ * @param ren a pointer to a renderer
+ * @param env a pointer to an environment
+ */
+static void render_solution(SDL_Renderer *ren, Env *env) {
+  // Stop now if there is no solution
+  // May happen when random game is called and find_min_gui didn't find a
+  // solution
+  // if (!env->solution->s->moves || env->solution->s->nb_moves == 0)
+  //  return;
+
+  // Checks if the solution is not good anymore
+  if (!winning_solution(env->game, env->solution)) {
+
+    uint moves_left =
+        game_nb_moves_max(env->game) - game_nb_moves_cur(env->game);
+
+    // Try to find another one
+    sol s = find_one_gui(env->game, moves_left);
+
+    // Checks it, if didn't find one : stop function, renders nothing and stop
+    // solver
+    // We don't free env->solution, we want to keep it in case player restart
+    // the game
+    if (!s->moves) {
+      free_sol(s);
+      env->solving = false;
+      return;
+    }
+    // If found one update solution in env
+    else {
+      free_sol(env->solution->s);
+      env->solution->s = s;
+      env->solution->index = 0;
     }
   }
 
-  return true;
+  SDL_Rect rect;
+  rect.w = env->width[CELL] / 4;
+  rect.h = env->height[CELL] / 4;
+
+  // Set the right move number in solution array
+  uint move_nb = env->solution->index;
+
+  // Render 'X' on each solution cells
+  for (uint y = 0; y < game_height(env->game); y++) {
+    for (uint x = 0; x < game_width(env->game); x++) {
+      if (env->solution->s->moves[move_nb] ==
+          game_cell_current_color(env->game, x, y)) {
+        rect.x = env->grid_start_x + x * env->width[CELL] +
+                 env->width[CELL] / 2 - rect.w / 2;
+        rect.y = env->grid_start_y + y * env->height[CELL] +
+                 env->height[CELL] / 2 - rect.h / 2;
+        SDL_RenderCopy(ren, env->textures[X], NULL, &rect);
+      }
+    }
+  }
+}
+
+/**
+ * @brief Tests if a solution is still a solution
+ * Useful when the player plays another color than the one given by the solution
+ * Or to avoid calling find_one_gui or find_min_gui on each clicks
+ *
+ * @param g a pointer to a game
+ * @param s a pointer to a solution
+ * @return true if the solution win after playing its moves
+ * @return false otherwise
+ */
+static bool winning_solution(cgame g, Gui_solution *s) {
+  // Returns false if there is no solution
+  // May happen when random game is called and find_min_gui didn't find a
+  // solution
+  if (!s->s->moves || s->s->nb_moves == 0)
+    return false;
+
+  // Solution has the same value as (0,0)
+  // May happen when solution is not minimal
+  // (as we don't look for a new solution as each clicks)
+  // Solution may be good but it would display 'X' on (0,0), we don't want that
+  bool same_value = (s->s->moves[s->index] == game_cell_current_color(g, 0, 0));
+  if (same_value)
+    return false;
+
+  game g2 = game_copy(g);
+  bool winning = false;
+
+  uint i = s->index;
+  for (uint move_nb = i; move_nb < s->s->nb_moves; move_nb++)
+    game_play_one_move(g2, s->s->moves[move_nb]);
+
+  if (game_is_over(g2))
+    winning = true;
+
+  game_delete(g2);
+  return winning;
+}
+
+/**
+ * @brief Returns the solution for Horizontal_Game_2N as it's the only
+ * predefined game our solver can't solve in less than 0.5 second
+ *
+ * @return sol its solution
+ */
+static sol sol_horizontal2N() {
+  sol s = sol_alloc();
+  s->moves = malloc(27 * sizeof(color));
+  color h2n_sol[27] = {1, 9, 2, 9, 8, 3, 6, 5, 1, 0, 1, 2, 7, 3,
+                       5, 1, 2, 3, 6, 7, 4, 0, 5, 2, 1, 8, 9};
+  for (uint i = 0; i < 27; i++)
+    s->moves[i] = h2n_sol[i];
+  s->nb_moves = 27;
+  return s;
 }
 
 /* ***** copy file from assets/ to Android internal storage ***** */

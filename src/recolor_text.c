@@ -12,32 +12,11 @@
  * AKHOUN Farouk
  */
 
-void usage(bool cond, char *err_mess);
 void grid_display(game g);
 void play_game(game g);
 
 int main(int argc, char *argv[]) {
-  usage(argc == 3 || argc > 6,
-        "./recolor_text [<width> <height> <nb_max_moves> [nb_max_color [S|N]]");
-
-  game g;
-
-  if (argc == 1)
-    g = game_load("data/default_game.rec");
-  else if (argc == 2)
-    g = game_load(argv[1]);
-  else {
-    uint w = atoi(argv[1]);
-    uint h = atoi(argv[2]);
-    uint mov_max = atoi(argv[3]);
-
-    uint nb_max_color =
-        (argc >= 5) ? (atoi(argv[4]) < 16 ? atoi(argv[4]) : 16) : 4;
-
-    bool is_wrap = (argc == 6) ? (argv[5][0] == 'S') : false;
-
-    g = game_random_ext(w, h, is_wrap, nb_max_color, mov_max);
-  }
+  game g = game_from_arg(argc, argv);
 
   // Starting the game
   play_game(g);

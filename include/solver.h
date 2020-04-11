@@ -23,6 +23,13 @@ typedef struct solution {
 void error(bool cond, char *err_mess);
 
 /**
+ * @brief Allocate memory for a solution structure and initialized it to default
+ * NB: The tab is not allocated (look_for_sol will do it if a solution is found)
+ * @return sol* a pointer to the allocated solution structure
+ */
+sol sol_alloc();
+
+/**
  * @brief Free a solution
  * @param s a solution
  */
@@ -83,5 +90,26 @@ sol find_one(cgame g, uint nb_moves_max);
  * @return uint number of solutions
  */
 uint nb_sol(cgame g);
+
+/**
+ * @brief Get the first sequence of solution that is found
+ * for graphic interface (look for 0.5 second max)
+ * NB: Same as find_one, just added a timer
+ *
+ * @param g a game instance
+ * @param nb_moves_max the maximum length of the sequence
+ * @return sol structure with all params initialized
+ */
+sol find_one_gui(cgame g, uint nb_moves_max);
+
+/**
+ * @brief Search minimal solution for 1 second maximum
+ * Function used in graphic interface
+ * NB: Same as find_min, just added a timer
+ *
+ * @param g a game instance
+ * @return sol structure with all params initialized
+ */
+sol find_min_gui(cgame g);
 
 #endif // SOLVER_H

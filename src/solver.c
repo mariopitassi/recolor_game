@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 void error(bool cond, char *err_mess) {
   if (cond) {
@@ -14,12 +15,7 @@ void error(bool cond, char *err_mess) {
   }
 }
 
-/**
- * @brief Allocate memory for a solution structure and initialized it to default
- * NB: The tab is not allocated (look_for_sol will do it if a solution is found)
- * @return sol* a pointer to the allocated solution structure
- */
-static sol sol_alloc() {
+sol sol_alloc() {
   sol s = malloc(sizeof(struct solution));
   error(s == NULL, "Allocation went wrong\n");
   s->moves = NULL;
@@ -182,10 +178,19 @@ SList col_around(cgame g, color *moves, uint nb_moves) {
  * (NULL)
  * @param look_nb_sol bool used to stop or not the search when the first
  * solution is found
+ * @param timer stop the function after 1s or not
+ * @param begin time we called the function
  */
 static void look_for_sol(cgame g, color *moves, SList c_around, uint nb_moves,
                          uint nb_moves_max, uint *nb_sol, sol s,
-                         bool look_nb_sol) {
+                         bool look_nb_sol, bool timer, clock_t *begin) {
+
+  if (timer) {
+    double time_spent = (double)(clock() - *begin) / CLOCKS_PER_SEC;
+    if (time_spent >= 0.5)
+      return;
+  }
+
   uint moves_left = nb_moves_max - nb_moves;
   uint nb_col = nb_colors(g, moves, nb_moves);
 
@@ -209,7 +214,7 @@ static void look_for_sol(cgame g, color *moves, SList c_around, uint nb_moves,
         g, moves,
         nb_moves + 1); //"nb_moves + 1" because we just added a move to "moves"
     look_for_sol(g, moves, next_c_around, nb_moves + 1, nb_moves_max, nb_sol, s,
-                 look_nb_sol);
+                 look_nb_sol, timer, begin);
     asde_slist_delete_list(next_c_around);
     c_around = asde_slist_next(c_around);
     if (*nb_sol > 0 && !look_nb_sol)
@@ -246,7 +251,8 @@ sol find_one(cgame g, uint nb_moves_max) {
   SList c_around = col_around(g, moves, 0);
   uint nb_sol = 0;
   bool look_nb_sol = false;
-  look_for_sol(g, moves, c_around, 0, nb_moves_max, &nb_sol, s, look_nb_sol);
+  look_for_sol(g, moves, c_around, 0, nb_moves_max, &nb_sol, s, look_nb_sol,
+               false, NULL);
   asde_slist_delete_list(c_around);
   free(moves);
   return s;
@@ -260,8 +266,54 @@ uint nb_sol(cgame g) {
   uint nb_sol = 0;
   bool look_nb_sol = true;
   look_for_sol(g, moves, c_around, 0, game_nb_moves_max(g), &nb_sol, s,
-               look_nb_sol);
+               look_nb_sol, false, NULL);
   asde_slist_delete_list(c_around);
   free(moves);
   return nb_sol;
+}
+
+sol find_one_gui(cgame g, uint nb_moves_max) {
+  error(g == NULL, "Invalid pointer\n");
+  sol s = sol_alloc();
+  color *moves = moves_alloc(nb_moves_max);
+  SList c_around = col_around(g, moves, 0);
+  uint nb_sol = 0;
+  bool look_nb_sol = false;
+  bool timer = true;
+  clock_t begin = clock();
+  look_for_sol(g, moves, c_around, 0, nb_moves_max, &nb_sol, s, look_nb_sol,
+               timer, &begin);
+  asde_slist_delete_list(c_around);
+  free(moves);
+  // printf("SOLUTION FOUND IN : %lf\n", (double)(clock() - begin) /
+  // CLOCKS_PER_SEC);
+  return s;
+}
+
+sol find_min_gui(cgame g) {
+  error(g == NULL, "Invalid pointer\n");
+  color moves[] = {0};
+  uint nb_moves_min = nb_colors(g, moves, 0) - 1;
+  clock_t begin = clock();
+  double time_spent;
+  sol s = find_one_gui(g, game_nb_moves_max(g));
+  if (s->nb_moves > nb_moves_min) {  // Solution may be better
+    uint nb_moves = s->nb_moves - 1; // Try with smaller nb_moves
+    while (true) {
+      sol s_tmp = find_one_gui(g, nb_moves);
+      if (s_tmp->nb_moves > 0) { // Better solution found
+        free_sol(s);
+        s = s_tmp; // Update solution
+        nb_moves = s->nb_moves - 1;
+      } else { // No better solution
+        free_sol(s_tmp);
+        break;
+      }
+      time_spent = (double)(clock() - begin) / CLOCKS_PER_SEC;
+      if (time_spent >= 1.0)
+        break;
+    }
+  }
+  // printf("FINAL SOLUTION FOUND IN : %lf\n", time_spent);
+  return s;
 }
