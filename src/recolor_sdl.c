@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* background in gray */
-    SDL_SetRenderDrawColor(ren, 0xA0, 0xA0, 0xA0, 0xFF);
+    SDL_SetRenderDrawColor(ren, 0x00, 0x00, 0x00, 0xFF);
     SDL_RenderClear(ren);
 
     /* render all what you want */

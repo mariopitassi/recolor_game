@@ -70,7 +70,7 @@ SList col_around(cgame g, color *moves, uint nb_moves);
  *
  * @param g a game instance
  * @return sol structure with all params initialized if a solution is found
- * else sol->nb_moves = 0
+ * else sol->nb_moves = 0 and sol->moves = NULL
  */
 sol find_min(cgame g);
 
@@ -79,7 +79,8 @@ sol find_min(cgame g);
  *
  * @param g a game instance
  * @param nb_moves_max the maximum length of the sequence
- * @return sol structure with all params initialized
+ * @return sol structure with all params initialized if a solution is found
+ * else sol->nb_moves = 0 and sol->moves = NULL
  */
 sol find_one(cgame g, uint nb_moves_max);
 
@@ -98,7 +99,8 @@ uint nb_sol(cgame g);
  *
  * @param g a game instance
  * @param nb_moves_max the maximum length of the sequence
- * @return sol structure with all params initialized
+ * @return sol structure with all params initialized if a solution is found
+ * else sol->nb_moves = 0 and sol->moves = NULL
  */
 sol find_one_gui(cgame g, uint nb_moves_max);
 
@@ -108,7 +110,8 @@ sol find_one_gui(cgame g, uint nb_moves_max);
  * NB: Same as find_min, just added a timer
  *
  * @param g a game instance
- * @return sol structure with all params initialized
+ * @return sol structure with all params initialized if a solution is found
+ * else sol->nb_moves = 0 and sol->moves = NULL
  */
 sol find_min_gui(cgame g);
 
