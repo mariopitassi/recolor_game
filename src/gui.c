@@ -15,13 +15,12 @@
 
 #ifdef __ANDROID__
 #define FONT "squirk.ttf"
-#define FONTSIZE 200
 #define BACKGROUND "background.png"
 #else
 #define FONT "ressources/squirk.ttf"
-#define FONTSIZE 200
 #define BACKGROUND "ressources/background.jpg"
 #endif
+#define FONTSIZE 400
 
 /* **************************************************************** */
 
@@ -43,6 +42,7 @@ enum texture {
   RAND_GAME,
   X,
   UNDO_MOVE,
+  STATUS,
   NB_TEXTURES
 };
 
@@ -68,6 +68,7 @@ struct Env_t {
   int *height;            // Array of all env. height (window, grid, cell)
   int grid_start_x;       // Grid's starting point (x-axis)
   int grid_start_y;       // Grid's starting point (y-axis)
+  SDL_Rect *position;     // Position of textures
   Gui_color *colors;      // Look at Gui_color struct above
   SDL_Texture **textures; // Array of all constant textures
 };
@@ -82,8 +83,7 @@ static void render_status(SDL_Renderer *ren, Env *env);
 static void render_end_game(SDL_Renderer *ren, Env *env, status state);
 static void render_solution(SDL_Renderer *ren, Env *env);
 static bool click_on_grid(SDL_Event *e, Env *env);
-static bool click_under_grid(SDL_Event *e, Env *env);
-static bool click_over_grid(SDL_Event *e, Env *env);
+static bool clicked_on_rect(int x, int y, struct SDL_Rect *rect);
 static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env);
 static void draw_cell(SDL_Window *win, SDL_Renderer *ren, Env *env, uint x,
                       uint y, color c);
@@ -142,9 +142,6 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   // Allocate memory for all env. width & height (win, grid, cell)
   env->width = malloc(NB_RESIZABLE_ELEMENTS * sizeof(uint));
   env->height = malloc(NB_RESIZABLE_ELEMENTS * sizeof(uint));
-
-  // Get screen size info (width & height) and update the environment
-  update_env(win, env);
 
   // Init grid colors
   env->colors = init_colors(g);
@@ -225,6 +222,11 @@ Env *init(SDL_Window *win, SDL_Renderer *ren, int argc, char *argv[]) {
   SDL_FreeSurface(undo_move);
   TTF_CloseFont(font);
 
+  env->position = malloc(NB_TEXTURES * sizeof(SDL_Rect));
+
+  // Get screen size info (width & height) and update the environment
+  update_env(win, env);
+
   return env;
 }
 
@@ -276,172 +278,45 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
 #ifdef __ANDROID__
 
   // Tapped on screen
-  if (e->type == SDL_FINGERDOWN) {
-
+  else if (e->type == SDL_FINGERDOWN) {
     // Convert coordinates as tfinger.x/y is normalized in [0..1]
-    float button_x = e->tfinger.x * env->width[WINDOW];
-    float button_y = e->tfinger.y * env->height[WINDOW];
+    int button_x = e->tfinger.x * env->width[WINDOW];
+    int button_y = e->tfinger.y * env->height[WINDOW];
 
-    if (click_on_grid(e, env) && env->game_state == PLAYING) {
+#else
 
-      // Convert tapped area to a valid x and y for game_cell_current_color()
-      uint x = (button_x - env->grid_start_x) / env->width[CELL];
-      uint y = (button_y - env->grid_start_y) / env->height[CELL];
-
-      // Check if x or y is really valid (if not just do as nothing happened)
-      // Can happen due to conversion float->uint & click is just on the edge
-      if (x >= game_width(env->game) || y >= game_height(env->game))
-        return false;
-
-      color c_cur = game_cell_current_color(env->game, x, y);
-
-      // For more fun just play color != than current cell (0,0)
-      if (c_cur != game_cell_current_color(env->game, 0, 0)) {
-        game_play_one_move(env->game, c_cur);
-
-        // Increase solution index by 1 to avoid recalculating it if player
-        // played a solution move
-        env->solution->index += 1;
-        update_solution(env);
-
-        // Add move in the history list (prepend -> moves are in reverse order)
-        env->moves_history = asde_slist_prepend(env->moves_history, c_cur);
-      }
-
-      if (game_is_over(env->game)) {
-        env->solving = false;
-        env->game_state = WIN;
-      } else if (full_grid(env->game)) {
-        env->solving = false;
-        env->game_state = LOSE;
-      }
-    }
-
-    else if (click_on_grid(e, env) && env->game_state == MENU) {
-
-      game g;
-      sol s;
-
-      if (button_y < env->grid_start_y + env->height[GRID] / 2) {
-
-        // Tapped on 'Random' game
-        if (button_x < env->grid_start_x + env->width[GRID] / 2) {
-
-          // Init a random game with maximum height and width of 20,
-          // 16 maximum colors, random wrapping and maximum moves will be
-          // defined by find_min_gui if solution found, w+h+max_color otherwise
-          uint w = 6 + (uint)rand() % 15;
-          uint h = 6 + (uint)rand() % 15;
-          bool wrap = (uint)rand() % 2;
-          uint max_color = 4 + (uint)rand() % 13;
-          uint max_moves = w + h + max_color;
-
-          g = game_random_ext(w, h, wrap, max_color, max_moves);
-          s = find_min_gui(g);
-
-          if (s->nb_moves > 0)
-            game_set_max_moves(g, s->nb_moves);
-        }
-        // Tapped on 'Easy' game
-        else {
-          g = game_load_android("default_game.rec");
-          s = find_one_gui(g, game_nb_moves_max(g));
-        }
-      }
-
-      else {
-
-        // Tapped on 'Medium' game
-        if (button_x < env->grid_start_x + env->width[GRID] / 2) {
-          g = game_load_android("horizontal_game2S.rec");
-          s = find_one_gui(g, game_nb_moves_max(g));
-        }
-        // Tapped on 'Hard' game
-        else {
-          g = game_load_android("horizontal_game2N.rec");
-          s = sol_horizontal2N();
-        }
-      }
-
-      // Clean previous game env
-      free(env->colors->cells);
-      free(env->colors);
-      free_sol(env->solution->s);
-      game_delete(env->game);
-
-      // Init created game env
-      env->game = g;
-      env->solution->s = s;
+  else if (e->type == SDL_KEYDOWN) {
+    switch (e->key.keysym.sym) {
+    case SDLK_ESCAPE:
+      PRINT("SEE YOU!\n");
+      return true;
+      break;
+    case SDLK_q:
+      PRINT("SEE YOU\n");
+      return true;
+      break;
+    case SDLK_r:
+      game_restart(env->game);
       env->solution->index = 0;
       env->solving = false;
       env->moves_history = asde_slist_delete_list(env->moves_history);
-      env->colors = init_colors(env->game);
       env->game_state = PLAYING;
-    }
-
-    else if (click_over_grid(e, env)) {
-
-      // Tapped on 'Games'
-      if (button_x > env->grid_start_x &&
-          button_x < env->grid_start_x + env->width[GRID] / 4) {
-        env->game_state = (env->game_state == MENU) ? PLAYING : MENU;
-      }
-      // Tapped on 'Solve
-      if ((button_x > env->grid_start_x + 3 * env->width[GRID] / 4 &&
-           button_x < env->grid_start_x + env->width[GRID])) {
-        env->solving = (env->solving == false) ? true : false;
-        update_solution(env);
-      }
-    }
-
-    else if (click_under_grid(e, env)) {
-
-      // Tapped on 'Restart'
-      if (button_x > env->grid_start_x &&
-          button_x < env->grid_start_x + env->width[GRID] / 4) {
-        game_restart(env->game);
-        env->solution->index = 0;
-        env->solving = false;
-        env->moves_history = asde_slist_delete_list(env->moves_history);
-        env->game_state = PLAYING;
-      }
-
-      // Tapped on 'Previous'
-      else if (button_x > env->grid_start_x + env->width[GRID] / 4 &&
-               button_x < env->grid_start_x + 3 * env->width[GRID] / 8 &&
-               game_nb_moves_cur(env->game) > 0) {
-        game_restart(env->game);
-        // Delete last move in list
-        env->moves_history = asde_slist_delete_first(env->moves_history);
-        // Reverse the list to have proper order of moves
-        SList moves = asde_slist_reverse(env->moves_history);
-        // Play all moves in the list
-        while (!asde_slist_isEmpty(moves)) {
-          game_play_one_move(env->game, asde_slist_data(moves));
-          moves = asde_slist_delete_first(moves);
-        }
-        if (env->solution->index > 0)
-          env->solution->index -= 1;
-        if (env->game_state == WIN || env->game_state == LOSE)
-          env->game_state = PLAYING;
-      }
-
-      // Tapped on 'Quit'
-      else
-        return (button_x > env->grid_start_x + 3 * env->width[GRID] / 4 &&
-                button_x < env->grid_start_x + env->width[GRID]);
+      break;
     }
   }
-#else
 
   // Clicked on screen
   else if (e->type == SDL_MOUSEBUTTONUP) {
+    int button_x = e->button.x;
+    int button_y = e->button.y;
+
+#endif
 
     if (click_on_grid(e, env) && env->game_state == PLAYING) {
 
       // Convert clicked area to a valid x and y for game_cell_current_color()
-      uint x = (e->button.x - env->grid_start_x) / (env->width[CELL]);
-      uint y = (e->button.y - env->grid_start_y) / (env->height[CELL]);
+      uint x = (button_x - env->grid_start_x) / (env->width[CELL]);
+      uint y = (button_y - env->grid_start_y) / (env->height[CELL]);
 
       // Check if x or y is really valid (if not just do as nothing happened)
       // Can happen due to conversion float->uint & click is just on the edge
@@ -475,53 +350,106 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
 
     }
 
-    else if (click_on_grid(e, env) && env->game_state == MENU) {
+    // Clicked on 'Games'
+    else if (clicked_on_rect(button_x, button_y, &env->position[GAMES])) {
+      env->game_state = (env->game_state == MENU) ? PLAYING : MENU;
+    }
+
+    // Clicked on 'Solve'
+    else if (clicked_on_rect(button_x, button_y, &env->position[SOLVE_S])) {
+      env->solving = (env->solving == false) ? true : false;
+      update_solution(env);
+    }
+
+    // Clicked on 'Restart'
+    else if (clicked_on_rect(button_x, button_y, &env->position[RESTART])) {
+      game_restart(env->game);
+      env->solution->index = 0;
+      env->solving = false;
+      env->moves_history = asde_slist_delete_list(env->moves_history);
+      env->game_state = PLAYING;
+    }
+
+    // Clicked on 'Previous'
+    else if (clicked_on_rect(button_x, button_y, &env->position[UNDO_MOVE]) &&
+             game_nb_moves_cur(env->game) > 0) {
+      game_restart(env->game);
+      // Delete last move in list
+      env->moves_history = asde_slist_delete_first(env->moves_history);
+      // Reverse the list to have proper order of moves
+      SList moves = asde_slist_reverse(env->moves_history);
+      // Play all moves in the list
+      while (!asde_slist_isEmpty(moves)) {
+        game_play_one_move(env->game, asde_slist_data(moves));
+        moves = asde_slist_delete_first(moves);
+      }
+      if (env->solution->index > 0)
+        env->solution->index -= 1;
+      env->solving = false;
+      if (env->game_state == WIN || env->game_state == LOSE)
+        env->game_state = PLAYING;
+    }
+
+    // Clicked on 'QUIT'
+    else if (clicked_on_rect(button_x, button_y, &env->position[QUIT])) {
+      PRINT("SEE YOU\n");
+      return true;
+    }
+
+    // We are in the 'MENU' (where you can choose the game)
+    else if (env->game_state == MENU) {
 
       game g;
       sol s;
 
-      if (e->button.y < env->grid_start_y + env->height[GRID] / 2) {
+      // Clicked on 'Random' game
+      if (clicked_on_rect(button_x, button_y, &env->position[RAND_GAME])) {
 
-        // Clicked on 'Random' game
-        if (e->button.x < env->grid_start_x + env->width[GRID] / 2) {
+        // Init a random game with maximum height and width of 20,
+        // 16 maximum colors, random wrapping and maximum moves will be
+        // defined by find_min_gui if solution found, w+h+max_color otherwise
+        uint w = 6 + (uint)rand() % 15;
+        uint h = 6 + (uint)rand() % 15;
+        bool wrap = (uint)rand() % 2;
+        uint max_color = 4 + (uint)rand() % 13;
+        uint max_moves = w + h + max_color;
 
-          // Init a random game with maximum height and width of 20,
-          // 16 maximum colors, random wrapping and maximum moves will be
-          // defined by find_min_gui if solution found, w+h+max_color otherwise
-          uint w = 6 + (uint)rand() % 15;
-          uint h = 6 + (uint)rand() % 15;
-          bool wrap = (uint)rand() % 2;
-          uint max_color = 4 + (uint)rand() % 13;
-          uint max_moves = w + h + max_color;
+        g = game_random_ext(w, h, wrap, max_color, max_moves);
+        s = find_min_gui(g);
 
-          g = game_random_ext(w, h, wrap, max_color, max_moves);
-          s = find_min_gui(g);
-
-          if (s->nb_moves > 0)
-            game_set_max_moves(g, s->nb_moves);
-        }
-
-        // Clicked on 'Easy' game
-        else {
-          g = game_load("data/default_game.rec");
-          s = find_one_gui(g, game_nb_moves_max(g));
-        }
+        if (s->nb_moves > 0)
+          game_set_max_moves(g, s->nb_moves);
       }
 
-      else {
-
-        // Clicked on 'Medium' game
-        if (e->button.x < env->grid_start_x + env->width[GRID] / 2) {
-          g = game_load("data/horizontal_game2S.rec");
-          s = find_one_gui(g, game_nb_moves_max(g));
-        }
-
-        // Clicked on 'Hard' game
-        else {
-          g = game_load("data/horizontal_game2N.rec");
-          s = sol_horizontal2N();
-        }
+      // Clicked on 'Easy' game
+      else if (clicked_on_rect(button_x, button_y, &env->position[EASY])) {
+#ifdef __ANDROID__
+        g = game_load_android("default_game.rec");
+#else
+        g = game_load("data/default_game.rec");
+#endif
+        s = find_one_gui(g, game_nb_moves_max(g));
       }
+
+      // Clicked on 'Medium' game
+      else if (clicked_on_rect(button_x, button_y, &env->position[MEDIUM])) {
+#ifdef __ANDROID__
+        g = game_load_android("horizontal_game2S.rec");
+#else
+        g = game_load("data/horizontal_game2S.rec");
+#endif
+        s = find_one_gui(g, game_nb_moves_max(g));
+      }
+      // Clicked on 'Hard' game
+      else if (clicked_on_rect(button_x, button_y, &env->position[HARD])) {
+#ifdef __ANDROID__
+        g = game_load_android("horizontal_game2N.rec");
+#else
+        g = game_load("data/horizontal_game2N.rec");
+#endif
+        s = sol_horizontal2N();
+      } else
+        return false;
 
       // Clean previous game env
       free(env->colors->cells);
@@ -538,83 +466,6 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
       env->colors = init_colors(env->game);
       env->game_state = PLAYING;
     }
-
-    else if (click_over_grid(e, env)) {
-
-      // Clicked on 'Games'
-      if (e->button.x > env->grid_start_x &&
-          e->button.x < env->grid_start_x + env->width[GRID] / 4) {
-        env->game_state = (env->game_state == MENU) ? PLAYING : MENU;
-      }
-
-      // Clicked on 'Solve'
-      else if (e->button.x > env->grid_start_x + 3 * env->width[GRID] / 4 &&
-               e->button.x < env->grid_start_x + env->width[GRID]) {
-        env->solving = (env->solving == false) ? true : false;
-        update_solution(env);
-      }
-    }
-
-    else if (click_under_grid(e, env)) {
-
-      // Clicked on 'Restart'
-      if (e->button.x > env->grid_start_x &&
-          e->button.x < env->grid_start_x + env->width[GRID] / 4) {
-        game_restart(env->game);
-        env->solution->index = 0;
-        env->solving = false;
-        env->moves_history = asde_slist_delete_list(env->moves_history);
-        env->game_state = PLAYING;
-      }
-
-      // Clicked on 'Previous'
-      else if (e->button.x > env->grid_start_x + env->width[GRID] / 4 &&
-               e->button.x < env->grid_start_x + 3 * env->width[GRID] / 8 &&
-               game_nb_moves_cur(env->game) > 0) {
-        game_restart(env->game);
-        // Delete last move in list
-        env->moves_history = asde_slist_delete_first(env->moves_history);
-        // Reverse the list to have proper order of moves
-        SList moves = asde_slist_reverse(env->moves_history);
-        // Play all moves in the list
-        while (!asde_slist_isEmpty(moves)) {
-          game_play_one_move(env->game, asde_slist_data(moves));
-          moves = asde_slist_delete_first(moves);
-        }
-        if (env->solution->index > 0)
-          env->solution->index -= 1;
-        if (env->game_state == WIN || env->game_state == LOSE)
-          env->game_state = PLAYING;
-      }
-
-      // Clicked on 'QUIT'
-      else if (e->button.x > env->grid_start_x + 3 * env->width[GRID] / 4 &&
-               e->button.x < env->grid_start_x + env->width[GRID]) {
-        PRINT("SEE YOU\n");
-        return true;
-      }
-    }
-  }
-#endif
-
-  else if (e->type == SDL_KEYDOWN) {
-    switch (e->key.keysym.sym) {
-    case SDLK_ESCAPE:
-      PRINT("SEE YOU!\n");
-      return true;
-      break;
-    case SDLK_q:
-      PRINT("SEE YOU\n");
-      return true;
-      break;
-    case SDLK_r:
-      game_restart(env->game);
-      env->solution->index = 0;
-      env->solving = false;
-      env->moves_history = asde_slist_delete_list(env->moves_history);
-      env->game_state = PLAYING;
-      break;
-    }
   }
 
   return false;
@@ -625,8 +476,12 @@ bool process(SDL_Window *win, SDL_Renderer *ren, Env *env, SDL_Event *e) {
 void clean(SDL_Window *win, SDL_Renderer *ren, Env *env) {
   game_delete(env->game);
 
-  for (uint t = 0; t < NB_TEXTURES; t++)
-    SDL_DestroyTexture(env->textures[t]);
+  for (uint t = 0; t < NB_TEXTURES; t++) {
+    if (t != STATUS) /* STATUS was created just for its position, the real
+                        texture is created in render_status() as it's a texture
+                        that changes constantly */
+      SDL_DestroyTexture(env->textures[t]);
+  }
 
   free(env->textures);
   free(env->width);
@@ -636,14 +491,17 @@ void clean(SDL_Window *win, SDL_Renderer *ren, Env *env) {
   free_sol(env->solution->s);
   free(env->solution);
   asde_slist_delete_list(env->moves_history);
+  free(env->position);
   free(env);
 }
 
 /* ************* Static functions description & code *************** */
 
 /**
- * @brief Update some environment variables according to window's size for
- * responsive purpose.
+ * @brief Update some environment variables and set textures position according
+ * to window's size for responsive purpose.
+ *
+ * COME HERE TO CHANGE A TEXTURE POSITION OR SIZE
  *
  * @param win pointer to a window
  * @param env pointer to a renderer
@@ -675,6 +533,119 @@ static void update_env(SDL_Window *win, Env *env) {
   // Divide free space (win_width - grid_width) by 2 to center the grid
   env->grid_start_x = (env->width[WINDOW] - env->width[GRID]) / 2;
   env->grid_start_y = (env->height[WINDOW] - env->height[GRID]) / 2;
+
+  /* ***** TEXTURES POSITION AND SIZE ***** */
+
+  // TITLE
+  env->position[TITLE].w = env->width[GRID] / 2;
+  env->position[TITLE].h = env->width[GRID] / 8;
+  if (env->position[TITLE].h > env->grid_start_y)
+    /* grid_start_y == gap between window and grid */
+    env->position[TITLE].h = env->grid_start_y;
+  env->position[TITLE].x = env->grid_start_x + env->width[GRID] / 4;
+  env->position[TITLE].y = env->grid_start_y - env->position[TITLE].h;
+
+  // GAMES
+  env->position[GAMES].w = env->width[GRID] / 8;
+  env->position[GAMES].h = env->width[GRID] / 16;
+  if (env->position[GAMES].h > env->grid_start_y / 2)
+    env->position[GAMES].h = env->grid_start_y / 2;
+  env->position[GAMES].x = env->grid_start_x + env->position[GAMES].w / 2;
+  env->position[GAMES].y = env->grid_start_y - 3 * env->position[GAMES].h / 2;
+
+  // SOLVE
+  env->position[SOLVE_S].w = env->width[GRID] / 8;
+  env->position[SOLVE_S].h = env->width[GRID] / 16;
+  if (env->position[SOLVE_S].h > env->grid_start_y / 2)
+    env->position[SOLVE_S].h = env->grid_start_y / 2;
+  env->position[SOLVE_S].x = env->grid_start_x + 3 * env->width[GRID] / 4 +
+                             env->position[SOLVE_S].w / 2;
+  env->position[SOLVE_S].y =
+      env->grid_start_y - 3 * env->position[SOLVE_S].h / 2;
+
+  env->position[SOLVE_L] = env->position[SOLVE_S];
+  env->position[SOLVE_R] = env->position[SOLVE_S];
+
+  // QUIT
+  env->position[QUIT].w = env->width[GRID] / 8;
+  env->position[QUIT].h = env->width[GRID] / 16;
+  env->position[QUIT].x =
+      env->grid_start_x + 3 * env->width[GRID] / 4 + env->position[QUIT].w / 2;
+  env->position[QUIT].y =
+      env->grid_start_y + env->height[GRID] + env->position[QUIT].h / 2;
+  if (env->position[QUIT].y + env->position[QUIT].h >= env->height[WINDOW]) {
+    env->position[QUIT].h = env->grid_start_y / 2;
+    env->position[QUIT].y =
+        env->grid_start_y + env->height[GRID] + env->position[QUIT].h / 2;
+  }
+
+  // RESTART
+  env->position[RESTART].w = env->width[GRID] / 8;
+  env->position[RESTART].h = env->width[GRID] / 16;
+  env->position[RESTART].x = env->grid_start_x + env->position[RESTART].w / 2;
+  env->position[RESTART].y =
+      env->grid_start_y + env->height[GRID] + env->position[RESTART].h / 2;
+  if (env->position[RESTART].y + env->position[RESTART].h >=
+      env->height[WINDOW]) {
+    env->position[RESTART].h = env->grid_start_y / 2;
+    env->position[RESTART].y =
+        env->grid_start_y + env->height[GRID] + env->position[RESTART].h / 2;
+  }
+
+  // STATUS (nb_cur / nb_max)
+  env->position[STATUS].w = env->width[GRID] / 4;
+  env->position[STATUS].h = env->width[GRID] / 8;
+  if (env->position[STATUS].h > env->grid_start_y)
+    env->position[STATUS].h = env->grid_start_y;
+  env->position[STATUS].x =
+      env->grid_start_x + env->width[GRID] / 4 + env->position[STATUS].w / 2;
+  env->position[STATUS].y =
+      env->grid_start_y + env->height[GRID] + env->position[STATUS].h / 16;
+
+  // UNDO (<<)
+  env->position[UNDO_MOVE].w = env->width[GRID] / 16;
+  env->position[UNDO_MOVE].h = env->width[GRID] / 8;
+  if (env->position[UNDO_MOVE].h > env->grid_start_y)
+    env->position[UNDO_MOVE].h = env->grid_start_y;
+  env->position[UNDO_MOVE].x =
+      env->grid_start_x + env->width[GRID] / 4 + env->position[UNDO_MOVE].w / 2;
+  env->position[UNDO_MOVE].y =
+      env->grid_start_y + env->height[GRID] + env->position[UNDO_MOVE].h / 16;
+
+  // RANDOM GAME
+  env->position[RAND_GAME].w = env->width[GRID] / 4;
+  env->position[RAND_GAME].h = env->height[GRID] / 8;
+  env->position[RAND_GAME].x = env->grid_start_x + env->width[GRID] / 8;
+  env->position[RAND_GAME].y = env->grid_start_y + env->height[GRID] / 4 -
+                               env->position[RAND_GAME].h / 2;
+
+  // EASY GAME
+  env->position[EASY].w = env->width[GRID] / 4;
+  env->position[EASY].h = env->height[GRID] / 8;
+  env->position[EASY].x = env->grid_start_x + 5 * env->width[GRID] / 8;
+  env->position[EASY].y =
+      env->grid_start_y + env->height[GRID] / 4 - env->position[EASY].h / 2;
+
+  // MEDIUM
+  env->position[MEDIUM].w = env->width[GRID] / 4;
+  env->position[MEDIUM].h = env->height[GRID] / 8;
+  env->position[MEDIUM].x = env->grid_start_x + env->width[GRID] / 8;
+  env->position[MEDIUM].y = env->grid_start_y + 3 * env->height[GRID] / 4 -
+                            env->position[MEDIUM].h / 2;
+
+  // HARD GAME
+  env->position[HARD].w = env->width[GRID] / 4;
+  env->position[HARD].h = env->height[GRID] / 8;
+  env->position[HARD].x = env->grid_start_x + 5 * env->width[GRID] / 8;
+  env->position[HARD].y =
+      env->grid_start_y + 3 * env->height[GRID] / 4 - env->position[HARD].h / 2;
+
+  // YOU WON && YOU LOST
+  env->position[WON].w = env->width[GRID] / 2;
+  env->position[WON].h = 100;
+  env->position[WON].x = env->width[WINDOW] / 2 - env->position[WON].w / 2;
+  env->position[WON].y = env->height[WINDOW] / 2 - env->position[WON].h / 2;
+  env->position[LOST] = env->position[WON];
 }
 
 /**
@@ -785,72 +756,38 @@ static void draw_grid(SDL_Window *win, SDL_Renderer *ren, Env *env) {
 }
 
 /**
- * @brief Renders title, restart, and quit (not mutable textures)
- * Draw 2 lines at the bottomto seperate : Restart | (nb_cur/nb_max) | Quit
+ * @brief Renders games, title, solve, restart, and quit (not mutable textures)
+ * Draw 2 lines at the bottom to separate : Restart | (nb_cur/nb_max) | Quit
  *
  * @param ren pointer to renderer
  * @param env pointer to environment
  */
 static void render_const_textures(SDL_Renderer *ren, Env *env) {
-  SDL_Rect rect;
-
-  // Set Titles's position and size then renders it
-  rect.w = env->width[GRID] / 2;
-  rect.h = rect.w / 4;
-  if (rect.h > env->grid_start_y)
-    rect.h = env->grid_start_y; // grid_start_y == gap between top's edge
-                                // window and grid
-  rect.x = env->grid_start_x + (env->width[GRID] / 4);
-  rect.y = env->grid_start_y - rect.h;
-  SDL_RenderCopy(ren, env->textures[TITLE], NULL, &rect);
-
-  // Save height for drawing separation lines
-  int h = rect.h;
-
-  // Games "button"
-  rect.w = rect.w / 4;
-  rect.h = rect.w / 2;
-  if (rect.h > env->grid_start_y / 2)
-    rect.h = env->grid_start_y / 2;
-  rect.x = env->grid_start_x + rect.w / 2;
-  rect.y = env->grid_start_y - 3 * rect.h / 2;
-  SDL_RenderCopy(ren, env->textures[GAMES], NULL, &rect);
+  SDL_RenderCopy(ren, env->textures[TITLE], NULL, &env->position[TITLE]);
+  SDL_RenderCopy(ren, env->textures[GAMES], NULL, &env->position[GAMES]);
+  SDL_RenderCopy(ren, env->textures[QUIT], NULL, &env->position[QUIT]);
+  SDL_RenderCopy(ren, env->textures[RESTART], NULL, &env->position[RESTART]);
 
   // Solve "button", Color change according to the solution state
   // SILVER if solver not activated
   // LIME if solver activated & solution found
   // RED if solver activated & no solution found
-  rect.x = env->grid_start_x + 3 * env->width[GRID] / 4 + rect.w / 2;
-  rect.y = env->grid_start_y - 3 * rect.h / 2;
-  if (env->solving && winning_solution(env->game, env->solution)) {
-    SDL_RenderCopy(ren, env->textures[SOLVE_L], NULL, &rect);
-  } else if (env->solving && !winning_solution(env->game, env->solution)) {
-    SDL_RenderCopy(ren, env->textures[SOLVE_R], NULL, &rect);
-  } else {
-    SDL_RenderCopy(ren, env->textures[SOLVE_S], NULL, &rect);
-  }
-
-  // Quit "button" (same w, h and y than 'Restart')
-  rect.y = env->grid_start_y + env->height[GRID] + rect.h / 2;
-  if (rect.y + rect.h >= env->height[WINDOW]) {
-    rect.h = env->grid_start_y / 2;
-    rect.y = env->grid_start_y + env->height[GRID] + rect.h / 2;
-  }
-  SDL_RenderCopy(ren, env->textures[QUIT], NULL, &rect);
-
-  // Restart "button"
-  rect.x = env->grid_start_x + rect.w / 2;
-  rect.y = env->grid_start_y + env->height[GRID] + rect.h / 2;
-  SDL_RenderCopy(ren, env->textures[RESTART], NULL, &rect);
+  if (env->solving && winning_solution(env->game, env->solution))
+    SDL_RenderCopy(ren, env->textures[SOLVE_L], NULL, &env->position[SOLVE_L]);
+  else if (env->solving && !winning_solution(env->game, env->solution))
+    SDL_RenderCopy(ren, env->textures[SOLVE_R], NULL, &env->position[SOLVE_R]);
+  else
+    SDL_RenderCopy(ren, env->textures[SOLVE_S], NULL, &env->position[SOLVE_S]);
 
   SDL_Color line_color = env->colors->grid_line;
   SDL_SetRenderDrawColor(ren, line_color.r, line_color.g, line_color.b, 255);
 
-  // Draw lines to seperate : Restart | nb_cur/nb_max | Quit
+  // Draw lines to separate : Restart | nb_cur/nb_max | Quit
   int start_line_x = env->grid_start_x + env->width[GRID] / 4;
   int start_line_y = env->grid_start_y + env->height[GRID];
   int end_line_x = env->grid_start_x + env->width[GRID] / 4;
-  int end_line_y = env->grid_start_y + env->height[GRID] + h;
+  int end_line_y =
+      env->grid_start_y + env->height[GRID] + env->position[TITLE].h;
   SDL_RenderDrawLine(ren, start_line_x, start_line_y, end_line_x, end_line_y);
 
   start_line_x = env->grid_start_x + (3 * env->width[GRID] / 4);
@@ -864,14 +801,12 @@ static void render_const_textures(SDL_Renderer *ren, Env *env) {
  * RED color if game lost (add an '!' at the end too)
  * SILVER color otherwise
  *
- * Renders undo_move ('<') if current move > 0
+ * Renders undo_move ('<<') if current move > 0
  *
- * @param ren a renderer
- * @param env an environment
+ * @param ren a pointer to renderer
+ * @param env a pointer to an environment
  */
 static void render_status(SDL_Renderer *ren, Env *env) {
-  SDL_Rect rect;
-
   bool lost = game_nb_moves_cur(env->game) >= game_nb_moves_max(env->game) &&
               !game_is_over(env->game);
 
@@ -901,60 +836,36 @@ static void render_status(SDL_Renderer *ren, Env *env) {
 
   SDL_Texture *status = SDL_CreateTextureFromSurface(ren, surface);
 
-  // Set position and size
-  rect.w = env->width[GRID] / 4;
-  rect.h = rect.w / 2;
-  if (rect.h > env->grid_start_y)
-    rect.h = env->grid_start_y;
-  rect.x = env->grid_start_x + env->width[GRID] / 4 + rect.w / 2;
-  rect.y = env->grid_start_y + env->height[GRID] + rect.h / 16;
-
   // Render it then destroy it
-  SDL_RenderCopy(ren, status, NULL, &rect);
+  SDL_RenderCopy(ren, status, NULL, &env->position[STATUS]);
 
   SDL_FreeSurface(surface);
   SDL_DestroyTexture(status);
   TTF_CloseFont(font);
 
-  // Undo move "button" (same h and y than above)
-  rect.w = rect.w / 4;
-  rect.x = env->grid_start_x + env->width[GRID] / 4 + rect.w / 2;
+  // Renders 'Undo_move' (<<) if nb_cur > 0
   if (!asde_slist_isEmpty(env->moves_history))
-    SDL_RenderCopy(ren, env->textures[UNDO_MOVE], NULL, &rect);
+    SDL_RenderCopy(ren, env->textures[UNDO_MOVE], NULL,
+                   &env->position[UNDO_MOVE]);
 }
 
 /**
  * @brief Renders a menu where you can load all the games
  *
- * @param ren a renderer
- * @param env an environment
+ * @param ren a pointer to a renderer
+ * @param env a pointer to an environment
  */
 static void render_menu(SDL_Renderer *ren, Env *env) {
-  SDL_Rect rect;
-
-  // Set random game's button position and size then renders it
-  rect.w = env->width[GRID] / 4;
-  rect.h = env->height[GRID] / 8;
-  rect.x = env->grid_start_x + env->width[GRID] / 8;
-  rect.y = env->grid_start_y + env->height[GRID] / 4 - rect.h / 2;
-  SDL_RenderCopy(ren, env->textures[RAND_GAME], NULL, &rect);
-
-  // Easy game "button"
-  rect.x = rect.x + env->width[GRID] / 2;
-  SDL_RenderCopy(ren, env->textures[EASY], NULL, &rect);
-
-  // Medium "button"
-  rect.y = rect.y + env->height[GRID] / 2;
-  SDL_RenderCopy(ren, env->textures[HARD], NULL, &rect);
-
-  // Hard "button"
-  rect.x = rect.x - env->width[GRID] / 2;
-  SDL_RenderCopy(ren, env->textures[MEDIUM], NULL, &rect);
+  SDL_RenderCopy(ren, env->textures[RAND_GAME], NULL,
+                 &env->position[RAND_GAME]);
+  SDL_RenderCopy(ren, env->textures[EASY], NULL, &env->position[EASY]);
+  SDL_RenderCopy(ren, env->textures[MEDIUM], NULL, &env->position[MEDIUM]);
+  SDL_RenderCopy(ren, env->textures[HARD], NULL, &env->position[HARD]);
 
   SDL_Color line_color = env->colors->grid_line;
   SDL_SetRenderDrawColor(ren, line_color.r, line_color.g, line_color.b, 255);
 
-  // Draw lines to seperate different games
+  // Draw lines to separate different games
   int start_line_x = env->grid_start_x + env->width[GRID] / 2;
   int start_line_y = env->grid_start_y;
   int end_line_x = start_line_x;
@@ -969,27 +880,18 @@ static void render_menu(SDL_Renderer *ren, Env *env) {
 }
 
 /**
- * @brief Renders 'YOU LOSE' || 'YOU WON' when the grid is full
+ * @brief Renders 'YOU LOST' || 'YOU WON' when the grid is full
  * (state == WIN || state == LOSE)
  *
- * @param ren a renderer
- * @param env an environment
+ * @param ren a pointer to renderer
+ * @param env a pointer to an environment
  * @param state the game's state (WIN || LOSE)
  */
 static void render_end_game(SDL_Renderer *ren, Env *env, status state) {
-  SDL_Rect rect;
-
-  // Render end game message (pos: grid center)
-  rect.w = env->width[GRID] / 2;
-  rect.h = 100;
-  rect.x = env->grid_start_x + env->width[GRID] / 4;
-  rect.y = (env->height[WINDOW] - rect.h) / 2;
-
-  if (state == WIN) {
-    SDL_RenderCopy(ren, env->textures[WON], NULL, &rect);
-  } else if (state == LOSE) {
-    SDL_RenderCopy(ren, env->textures[LOST], NULL, &rect);
-  }
+  if (state == WIN)
+    SDL_RenderCopy(ren, env->textures[WON], NULL, &env->position[WON]);
+  else if (state == LOSE)
+    SDL_RenderCopy(ren, env->textures[LOST], NULL, &env->position[LOST]);
 }
 
 /**
@@ -1016,42 +918,25 @@ static bool click_on_grid(SDL_Event *e, Env *env) {
 }
 
 /**
- * @brief Check if a click is under the grid (in the 'restart | status | quit'
- * area)
+ * @brief Checks if a coordinate (x, y) is inside a rectangle
  *
- * @param e pointer to an SDL_Event
- * @param env pointer to an environment
- * @return true if click is under the grid
- * @return false otherwise
+ * @param x the x coordinate
+ * @param y the y coordinate
+ * @param rect an SDL_Rect structure
+ * @return true if (x, y) is inside the rectangle
+ * @return false othewise
  */
-static bool click_under_grid(SDL_Event *e, Env *env) {
-#ifdef __ANDROID__
-  float button_y = e->tfinger.y * env->height[WINDOW];
-  return (button_y > env->grid_start_y + env->height[GRID] &&
-          button_y <
-              env->grid_start_y + env->height[GRID] + env->width[GRID] / 8);
-#endif
-  return (e->button.y > env->grid_start_y + env->height[GRID] &&
-          e->button.y <
-              env->grid_start_y + env->height[GRID] + env->width[GRID] / 8);
-}
-
-/**
- * @brief Checks if a click is over the grid (in the menu | title | solve area)
- *
- * @param e pointer to an SDL_Event
- * @param env pointer to an environment
- * @return true if click is over the grid
- * @return false otherwise
- */
-static bool click_over_grid(SDL_Event *e, Env *env) {
-#ifdef __ANDROID__
-  float button_y = e->tfinger.y * env->height[WINDOW];
-  return (button_y < env->grid_start_y &&
-          button_y > env->grid_start_y - env->width[GRID] / 8);
-#endif
-  return (e->button.y < env->grid_start_y &&
-          e->button.y > env->grid_start_y - env->width[GRID] / 8);
+static bool clicked_on_rect(int x, int y, struct SDL_Rect *rect) {
+  // Check X coordinate is within rectangle range
+  if (x >= rect->x && x <= (rect->x + rect->w)) {
+    // Check Y coordinate is within rectangle range
+    if (y >= rect->y && y <= (rect->y + rect->h)) {
+      // X and Y is inside the rectangle
+      return true;
+    }
+  }
+  // X or Y is outside the rectangle
+  return false;
 }
 
 /**
@@ -1073,7 +958,6 @@ static bool full_grid(cgame g) {
 
 /**
  * @brief Renders 'X' on each solution cells
- * Renders nothing and stop solver if no solution found
  *
  * @param ren a pointer to a renderer
  * @param env a pointer to an environment
@@ -1115,13 +999,14 @@ static bool winning_solution(cgame g, Gui_solution *s) {
   // Returns false if there is no solution
   // May happen when random game is called and find_min_gui didn't find a
   // solution
-  if (!s->s->moves || s->s->nb_moves == 0 || s->index > s->s->nb_moves)
+  if (!s->s->moves || s->s->nb_moves == 0 || s->index >= s->s->nb_moves)
     return false;
 
   // Solution has the same value as (0,0)
   // May happen when solution is not minimal
   // Solution may be good but it would display 'X' on (0,0), we don't want that
-  bool same_value = (s->s->moves[s->index] == game_cell_current_color(g, 0, 0));
+  uint i = s->index;
+  bool same_value = (s->s->moves[i] == game_cell_current_color(g, 0, 0));
   if (same_value)
     return false;
 
@@ -1129,7 +1014,6 @@ static bool winning_solution(cgame g, Gui_solution *s) {
   bool winning = false;
 
   // Play all the moves in the solution array to see if solution is good
-  uint i = s->index;
   for (uint move_nb = i; move_nb < s->s->nb_moves; move_nb++)
     game_play_one_move(g2, s->s->moves[move_nb]);
 
@@ -1143,7 +1027,7 @@ static bool winning_solution(cgame g, Gui_solution *s) {
 /**
  * @brief Checks if a solution is still good
  * Does nothing if it's the case or !env->solving
- * If it's not, tries to find a new solution
+ * If it's not, tries to find a new solution and update env->solution
  *
  * @param env A pointer to an environment
  */
